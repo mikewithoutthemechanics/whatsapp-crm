@@ -1,0 +1,41 @@
+# WhatsApp CRM for SA SMMEs
+# Free tier: Groq (14,400 req/day) + Supabase free (50K rows, 500MB)
+
+# Core framework
+fastapi>=0.109.0,<1.0
+uvicorn[standard]>=0.27.0,<1.0
+pydantic>=2.5.0,<3.0
+
+# WhatsApp / Messaging
+httpx>=0.26.0,<1.0
+cryptography>=41.0.0
+
+# Database (Supabase / PostgreSQL)
+sqlalchemy>=2.0.0,<3.0
+asyncpg>=0.29.0
+alembic>=1.13.0
+
+# AI Backend
+requests>=2.28.0
+
+# Admin Dashboard (optional lightweight)
+jinja2>=3.1.0
+
+# Background tasks
+apscheduler>=3.10.0
+
+# File storage (for media)
+boto3>=1.28.0  # or use Supabase Storage
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+python-dotenv>=1.0.0
+
+# SA-specific
+phonenumbers>=8.13.0
+
+# Dev tools
+python-dotenv>=1.0.0
+black>=23.0.0
+ruff>=0.1.0
