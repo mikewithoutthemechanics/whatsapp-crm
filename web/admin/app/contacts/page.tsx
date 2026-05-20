@@ -25,7 +25,7 @@ function getStatusColor(status: string): string {
     case 'contacted': return '#128C7E';
     case 'qualified': return '#25D366';
     case 'converted': return '#075E54';
-    case 'inactive': return '#667781';
+    case 'inactive': return '#3B4A54';
     default: return '#128C7E';
   }
 }
@@ -34,7 +34,7 @@ function getScoreColor(score: number): string {
   if (score >= 80) return '#25D366';
   if (score >= 50) return '#F59E0B';
   if (score >= 25) return '#128C7E';
-  return '#667781';
+  return '#3B4A54';
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -103,14 +103,14 @@ export default function ContactsPage() {
   };
 
   if (loading)
-    return <div className="flex items-center justify-center h-64" style={{ color: '#667781' }}>Loading…</div>;
+    return <div className="flex items-center justify-center h-64" style={{ color: '#3B4A54' }}>Loading…</div>;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#111B21' }}>Contacts</h1>
-          <p className="text-sm mt-0.5" style={{ color: '#667781' }}>{contacts.length} contacts</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#0B141A' }}>Contacts</h1>
+          <p className="text-sm mt-0.5" style={{ color: '#3B4A54' }}>{contacts.length} contacts</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
@@ -126,26 +126,26 @@ export default function ContactsPage() {
       {/* Filters */}
       <div
         className="rounded-xl p-4 border flex flex-wrap gap-3 items-center"
-        style={{ background: '#FFFFFF', borderColor: '#E0E0E0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+        style={{ background: '#FFFFFF', borderColor: '#B8C1C8', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}
       >
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#667781' }} />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#3B4A54' }} />
           <input
             type="text"
             placeholder="Search name or number…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-8 pr-3 py-2 rounded-lg text-sm outline-none"
-            style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+            style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
             onFocus={(e) => (e.target.style.borderColor = '#25D366')}
-            onBlur={(e) => (e.target.style.borderColor = '#E0E0E0')}
+            onBlur={(e) => (e.target.style.borderColor = '#B8C1C8')}
           />
         </div>
         <select
           value={leadFilter}
           onChange={(e) => setLeadFilter(e.target.value)}
           className="px-3 py-2 rounded-lg text-sm outline-none cursor-pointer"
-          style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+          style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
         >
           <option value="">All Statuses</option>
           {STATUS_OPTIONS.map((s) => (
@@ -158,27 +158,27 @@ export default function ContactsPage() {
           value={tagFilter}
           onChange={(e) => setTagFilter(e.target.value)}
           className="px-3 py-2 rounded-lg text-sm outline-none"
-          style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+          style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
           onFocus={(e) => (e.target.style.borderColor = '#25D366')}
-          onBlur={(e) => (e.target.style.borderColor = '#E0E0E0')}
+          onBlur={(e) => (e.target.style.borderColor = '#B8C1C8')}
         />
       </div>
 
-      <div className="flex gap-0 rounded-xl border overflow-hidden" style={{ borderColor: '#E0E0E0', background: '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+      <div className="flex gap-0 rounded-xl border overflow-hidden" style={{ borderColor: '#B8C1C8', background: '#FFFFFF', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}>
         {/* Table */}
         <div className={`flex-1 overflow-auto transition-all ${selected ? 'md:max-w-[75%]' : ''}`}>
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr style={{ borderBottom: '1px solid #E0E0E0' }}>
+              <tr style={{ borderBottom: '1px solid #B8C1C8' }}>
                 {['Name', 'WhatsApp', 'Status', 'Score', 'Tags', 'Province', 'Source', 'Created'].map((h) => (
-                  <th key={h} className="text-left text-[11px] uppercase tracking-wider px-4 py-3 font-medium whitespace-nowrap" style={{ color: '#667781' }}>{h}</th>
+                  <th key={h} className="text-left text-[11px] uppercase tracking-wider px-4 py-3 font-medium whitespace-nowrap" style={{ color: '#3B4A54' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {contacts.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center py-10" style={{ color: '#667781' }}>No contacts found.</td>
+                  <td colSpan={8} className="text-center py-10" style={{ color: '#3B4A54' }}>No contacts found.</td>
                 </tr>
               )}
               {contacts.map((c) => {
@@ -189,14 +189,14 @@ export default function ContactsPage() {
                     onClick={() => setSelected(selected?.id === c.id ? null : c)}
                     className="cursor-pointer transition-all"
                     style={{
-                      borderBottom: '1px solid #F0F2F5',
-                      background: selected?.id === c.id ? '#F0F2F5' : '#FFFFFF',
+                      borderBottom: '1px solid #EAEDEE',
+                      background: selected?.id === c.id ? '#EAEDEE' : '#FFFFFF',
                     }}
-                    onMouseEnter={(e) => { if (selected?.id !== c.id) (e.currentTarget as HTMLTableRowElement).style.background = '#F7F8FA'; }}
+                    onMouseEnter={(e) => { if (selected?.id !== c.id) (e.currentTarget as HTMLTableRowElement).style.background = '#EEF0F2'; }}
                     onMouseLeave={(e) => { if (selected?.id !== c.id) (e.currentTarget as HTMLTableRowElement).style.background = '#FFFFFF'; }}
                   >
-                    <td className="px-4 py-3 font-medium" style={{ color: '#111B21' }}>{c.display_name}</td>
-                    <td className="px-4 py-3 flex items-center gap-1.5" style={{ color: '#667781' }}>
+                    <td className="px-4 py-3 font-medium" style={{ color: '#0B141A' }}>{c.display_name}</td>
+                    <td className="px-4 py-3 flex items-center gap-1.5" style={{ color: '#3B4A54' }}>
                       {c.whatsapp_number}
                       {lds && (
                         <span title={`Load shedding: ${lds}`} className="text-[10px] px-1.5 py-0.5 rounded font-semibold" style={{ background: '#FFF3CD', color: '#B8860B' }}>
@@ -209,20 +209,20 @@ export default function ContactsPage() {
                       <span className="font-medium" style={{ color: getScoreColor(c.lead_score) }}>
                         {c.lead_score}
                       </span>
-                      <span className="text-xs" style={{ color: '#667781' }}> /100</span>
+                      <span className="text-xs" style={{ color: '#3B4A54' }}> /100</span>
                     </td>
-                    <td className="px-4 py-3" style={{ color: '#667781' }}>
+                    <td className="px-4 py-3" style={{ color: '#3B4A54' }}>
                       {c.tags?.length ? (
                         <div className="flex gap-1 flex-wrap">
                           {c.tags.slice(0, 3).map((t) => (
-                            <span key={t} className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: '#F0F2F5', color: '#667781' }}>{t}</span>
+                            <span key={t} className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: '#EAEDEE', color: '#3B4A54' }}>{t}</span>
                           ))}
                         </div>
-                      ) : <span style={{ color: '#667781' }}>—</span>}
+                      ) : <span style={{ color: '#3B4A54' }}>—</span>}
                     </td>
-                    <td className="px-4 py-3" style={{ color: '#667781' }}>{c.province || '—'}</td>
-                    <td className="px-4 py-3" style={{ color: '#667781' }}>{c.lead_source || '—'}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: '#667781' }}>{c.created_at?.slice(0, 10) || '—'}</td>
+                    <td className="px-4 py-3" style={{ color: '#3B4A54' }}>{c.province || '—'}</td>
+                    <td className="px-4 py-3" style={{ color: '#3B4A54' }}>{c.lead_source || '—'}</td>
+                    <td className="px-4 py-3 text-xs" style={{ color: '#3B4A54' }}>{c.created_at?.slice(0, 10) || '—'}</td>
                   </tr>
                 );
               })}
@@ -234,31 +234,31 @@ export default function ContactsPage() {
         {selected && (
           <div
             className="w-full md:w-[320px] border-l p-5 space-y-4 shrink-0"
-            style={{ borderColor: '#E0E0E0', background: '#F7F8FA' }}
+            style={{ borderColor: '#B8C1C8', background: '#EEF0F2' }}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold" style={{ color: '#111B21' }}>Contact Detail</h3>
-              <button onClick={() => setSelected(null)} className="cursor-pointer bg-transparent border-none text-lg leading-none" style={{ color: '#667781' }}>&times;</button>
+              <h3 className="text-sm font-semibold" style={{ color: '#0B141A' }}>Contact Detail</h3>
+              <button onClick={() => setSelected(null)} className="cursor-pointer bg-transparent border-none text-lg leading-none" style={{ color: '#3B4A54' }}>&times;</button>
             </div>
             <div>
-              <p className="text-xs uppercase" style={{ color: '#667781' }}>Name</p>
-              <p className="text-sm mt-0.5" style={{ color: '#111B21' }}>{selected.display_name}</p>
+              <p className="text-xs uppercase" style={{ color: '#3B4A54' }}>Name</p>
+              <p className="text-sm mt-0.5" style={{ color: '#0B141A' }}>{selected.display_name}</p>
             </div>
             <div>
-              <p className="text-xs uppercase" style={{ color: '#667781' }}>WhatsApp Number</p>
-              <p className="text-sm mt-0.5" style={{ color: '#111B21' }}>{selected.whatsapp_number}</p>
+              <p className="text-xs uppercase" style={{ color: '#3B4A54' }}>WhatsApp Number</p>
+              <p className="text-sm mt-0.5" style={{ color: '#0B141A' }}>{selected.whatsapp_number}</p>
             </div>
             <div>
-              <p className="text-xs uppercase" style={{ color: '#667781' }}>Lead Status</p>
+              <p className="text-xs uppercase" style={{ color: '#3B4A54' }}>Lead Status</p>
               <p className="mt-1"><StatusBadge status={selected.lead_status} /></p>
             </div>
             <div>
-              <p className="text-xs uppercase" style={{ color: '#667781' }}>Lead Score</p>
-              <p className="text-lg font-bold mt-0.5" style={{ color: getScoreColor(selected.lead_score) }}>{selected.lead_score}<span className="text-xs" style={{ color: '#667781' }}> /100</span></p>
+              <p className="text-xs uppercase" style={{ color: '#3B4A54' }}>Lead Score</p>
+              <p className="text-lg font-bold mt-0.5" style={{ color: getScoreColor(selected.lead_score) }}>{selected.lead_score}<span className="text-xs" style={{ color: '#3B4A54' }}> /100</span></p>
             </div>
             {selected.tags?.length && (
               <div>
-                <p className="text-xs uppercase mb-1.5" style={{ color: '#667781' }}>Tags</p>
+                <p className="text-xs uppercase mb-1.5" style={{ color: '#3B4A54' }}>Tags</p>
                 <div className="flex gap-1 flex-wrap">
                   {selected.tags.map((t) => (
                     <span key={t} className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#DCF8C620', color: '#128C7E', border: '1px solid #25D36630' }}>{t}</span>
@@ -267,20 +267,20 @@ export default function ContactsPage() {
               </div>
             )}
             <div>
-              <p className="text-xs uppercase" style={{ color: '#667781' }}>Province</p>
-              <p className="text-sm mt-0.5" style={{ color: '#111B21' }}>{selected.province || '—'}</p>
+              <p className="text-xs uppercase" style={{ color: '#3B4A54' }}>Province</p>
+              <p className="text-sm mt-0.5" style={{ color: '#0B141A' }}>{selected.province || '—'}</p>
             </div>
             <div>
-              <p className="text-xs uppercase" style={{ color: '#667781' }}>City</p>
-              <p className="text-sm mt-0.5" style={{ color: '#111B21' }}>{selected.city || '—'}</p>
+              <p className="text-xs uppercase" style={{ color: '#3B4A54' }}>City</p>
+              <p className="text-sm mt-0.5" style={{ color: '#0B141A' }}>{selected.city || '—'}</p>
             </div>
             <div>
-              <p className="text-xs uppercase" style={{ color: '#667781' }}>Source</p>
-              <p className="text-sm mt-0.5" style={{ color: '#111B21' }}>{selected.lead_source || '—'}</p>
+              <p className="text-xs uppercase" style={{ color: '#3B4A54' }}>Source</p>
+              <p className="text-sm mt-0.5" style={{ color: '#0B141A' }}>{selected.lead_source || '—'}</p>
             </div>
             <div>
-              <p className="text-xs uppercase" style={{ color: '#667781' }}>Created</p>
-              <p className="text-sm mt-0.5" style={{ color: '#111B21' }}>{selected.created_at?.slice(0, 10) || '—'}</p>
+              <p className="text-xs uppercase" style={{ color: '#3B4A54' }}>Created</p>
+              <p className="text-sm mt-0.5" style={{ color: '#0B141A' }}>{selected.created_at?.slice(0, 10) || '—'}</p>
             </div>
           </div>
         )}
@@ -291,11 +291,11 @@ export default function ContactsPage() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div
             className="w-full max-w-lg rounded-xl border p-6 space-y-4 animate-fade-in"
-            style={{ background: '#FFFFFF', borderColor: '#E0E0E0', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}
+            style={{ background: '#FFFFFF', borderColor: '#B8C1C8', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}
           >
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold" style={{ color: '#111B21' }}>Add Contact</h2>
-              <button onClick={() => setShowCreate(false)} className="cursor-pointer bg-transparent border-none text-xl" style={{ color: '#667781' }}>&times;</button>
+              <h2 className="text-lg font-bold" style={{ color: '#0B141A' }}>Add Contact</h2>
+              <button onClick={() => setShowCreate(false)} className="cursor-pointer bg-transparent border-none text-xl" style={{ color: '#3B4A54' }}>&times;</button>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[
@@ -307,7 +307,7 @@ export default function ContactsPage() {
                 ['Source', 'lead_source'],
               ].map(([label, key]) => (
                 <div key={key} className="col-span-2 sm:col-span-1">
-                  <label className="block text-[11px] uppercase mb-1" style={{ color: '#667781' }}>{label}</label>
+                  <label className="block text-[11px] uppercase mb-1" style={{ color: '#3B4A54' }}>{label}</label>
                   <input
                     type="text"
                     value={(newContact as Record<string, string>)[key]}
@@ -315,20 +315,20 @@ export default function ContactsPage() {
                       setNewContact({ ...newContact, [key]: e.target.value })
                     }
                     className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-                    style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+                    style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
                     onFocus={(e) => (e.target.style.borderColor = '#25D366')}
-                    onBlur={(e) => (e.target.style.borderColor = '#E0E0E0')}
+                    onBlur={(e) => (e.target.style.borderColor = '#B8C1C8')}
                   />
                 </div>
               ))}
             </div>
             <div>
-              <label className="block text-[11px] uppercase mb-1" style={{ color: '#667781' }}>Lead Status</label>
+              <label className="block text-[11px] uppercase mb-1" style={{ color: '#3B4A54' }}>Lead Status</label>
               <select
                 value={newContact.lead_status}
                 onChange={(e) => setNewContact({ ...newContact, lead_status: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg text-sm outline-none cursor-pointer"
-                style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+                style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
               >
                 {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -337,8 +337,8 @@ export default function ContactsPage() {
               <button
                 onClick={() => setShowCreate(false)}
                 className="flex-1 py-2.5 rounded-lg text-sm cursor-pointer font-medium transition-all"
-                style={{ color: '#667781', border: '1px solid #E0E0E0', background: '#FFFFFF' }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#F0F2F5')}
+                style={{ color: '#3B4A54', border: '1px solid #B8C1C8', background: '#FFFFFF' }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#EAEDEE')}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#FFFFFF')}
               >
                 Cancel

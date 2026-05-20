@@ -15,7 +15,7 @@ import { Loader2, Plus, Play, Pause, Send, X, Zap } from 'lucide-react';
 const STATUS_COLOR: Record<string, string> = {
   active: '#25D366',
   paused: '#F59E0B',
-  draft: '#667781',
+  draft: '#3B4A54',
   completed: '#128C7E',
 };
 
@@ -23,7 +23,7 @@ function StatusTag({ status }: { status: string }) {
   return (
     <span
       className="text-[11px] px-2 py-0.5 rounded-full uppercase font-semibold"
-      style={{ background: `${STATUS_COLOR[status] || '#667781'}18`, color: STATUS_COLOR[status] || '#667781' }}
+      style={{ background: `${STATUS_COLOR[status] || '#3B4A54'}18`, color: STATUS_COLOR[status] || '#3B4A54' }}
     >
       {status}
     </span>
@@ -104,14 +104,14 @@ export default function CampaignsPage() {
   };
 
   if (loading)
-    return <div className="flex items-center justify-center h-64" style={{ color: '#667781' }}>Loading…</div>;
+    return <div className="flex items-center justify-center h-64" style={{ color: '#3B4A54' }}>Loading…</div>;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#111B21' }}>Campaigns</h1>
-          <p className="text-sm mt-0.5" style={{ color: '#667781' }}>Drip & broadcast campaigns</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#0B141A' }}>Campaigns</h1>
+          <p className="text-sm mt-0.5" style={{ color: '#3B4A54' }}>Drip & broadcast campaigns</p>
         </div>
         {tab === 'campaigns' && (
           <button
@@ -127,15 +127,15 @@ export default function CampaignsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-lg w-fit" style={{ background: '#F0F2F5' }}>
+      <div className="flex gap-1 p-1 rounded-lg w-fit" style={{ background: '#EAEDEE' }}>
         {(['campaigns', 'broadcast'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 rounded-md text-sm font-medium cursor-pointer border-none transition-all ${
-              tab === t ? 'text-white' : 'hover:text-[#111B21]'
+              tab === t ? 'text-white' : 'hover:text-[#0B141A]'
             }`}
-            style={tab === t ? { background: '#25D366', color: '#FFFFFF' } : { background: 'transparent', color: '#667781' }}
+            style={tab === t ? { background: '#25D366', color: '#FFFFFF' } : { background: 'transparent', color: '#3B4A54' }}
           >
             {t === 'campaigns' ? '📨 Campaigns' : '📡 Broadcast'}
           </button>
@@ -146,35 +146,35 @@ export default function CampaignsPage() {
       {tab === 'campaigns' && (
         <div className="space-y-2">
           {campaigns.length === 0 && (
-            <div className="text-center py-10 rounded-xl border" style={{ borderColor: '#E0E0E0', color: '#667781' }}>No campaigns yet.</div>
+            <div className="text-center py-10 rounded-xl border" style={{ borderColor: '#B8C1C8', color: '#3B4A54' }}>No campaigns yet.</div>
           )}
           {campaigns.map((c) => (
             <div
               key={c.id}
               className="rounded-xl border p-4 flex flex-wrap items-center gap-3 sm:gap-4 animate-fade-in"
-              style={{ background: '#FFFFFF', borderColor: '#E0E0E0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+              style={{ background: '#FFFFFF', borderColor: '#B8C1C8', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}
             >
               <Zap size={18} style={{ color: '#25D366' }} className="shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold" style={{ color: '#111B21' }}>{c.name}</p>
-                <p className="text-xs mt-0.5" style={{ color: '#667781' }}>
+                <p className="text-sm font-semibold" style={{ color: '#0B141A' }}>{c.name}</p>
+                <p className="text-xs mt-0.5" style={{ color: '#3B4A54' }}>
                   {c.campaign_type} · trigger: {c.trigger_event}
                 </p>
               </div>
               <StatusTag status={c.status} />
-              <div className="text-xs text-center" style={{ color: '#667781' }}>
-                <p className="font-semibold" style={{ color: '#111B21' }}>{c.active_subscribers}</p>
+              <div className="text-xs text-center" style={{ color: '#3B4A54' }}>
+                <p className="font-semibold" style={{ color: '#0B141A' }}>{c.active_subscribers}</p>
                 <p>subscribers</p>
               </div>
-              <div className="text-xs text-center" style={{ color: '#667781' }}>
+              <div className="text-xs text-center" style={{ color: '#3B4A54' }}>
                 <p>{c.sent_count}</p>
                 <p>sent</p>
               </div>
-              <div className="text-xs text-center" style={{ color: '#667781' }}>
+              <div className="text-xs text-center" style={{ color: '#3B4A54' }}>
                 <p className="font-semibold" style={{ color: '#25D366' }}>{c.delivered_count}</p>
                 <p>delivered</p>
               </div>
-              <div className="text-xs text-center" style={{ color: '#667781' }}>
+              <div className="text-xs text-center" style={{ color: '#3B4A54' }}>
                 <p>{c.replied_count}</p>
                 <p>replied</p>
               </div>
@@ -209,13 +209,13 @@ export default function CampaignsPage() {
       {tab === 'broadcast' && (
         <div
           className="rounded-xl border p-5 space-y-4 animate-fade-in"
-          style={{ background: '#FFFFFF', borderColor: '#E0E0E0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+          style={{ background: '#FFFFFF', borderColor: '#B8C1C8', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}
         >
           <div className="flex items-center gap-2">
             <Send size={16} style={{ color: '#25D366' }} />
-            <h2 className="text-lg font-semibold" style={{ color: '#111B21' }}>Send Broadcast</h2>
+            <h2 className="text-lg font-semibold" style={{ color: '#0B141A' }}>Send Broadcast</h2>
           </div>
-          <p className="text-sm" style={{ color: '#667781' }}>Send a message to all contacts or a specific segment.</p>
+          <p className="text-sm" style={{ color: '#3B4A54' }}>Send a message to all contacts or a specific segment.</p>
 
           {broadcastStatus && (
             <p className={`text-sm ${broadcastStatus.includes('Error') ? 'text-red-600' : broadcastStatus.includes('successfully') ? 'text-green-600' : 'text-amber-600'}`}>
@@ -224,12 +224,12 @@ export default function CampaignsPage() {
           )}
 
           <div>
-            <label className="block text-xs uppercase mb-1" style={{ color: '#667781' }}>Campaign</label>
+            <label className="block text-xs uppercase mb-1" style={{ color: '#3B4A54' }}>Campaign</label>
             <select
               value={broadcastCampaignId}
               onChange={(e) => setBroadcastCampaignId(e.target.value)}
               className="w-full px-3 py-2 rounded-lg text-sm outline-none cursor-pointer"
-              style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+              style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
             >
               <option value="">Select a campaign…</option>
               {campaigns.map((c) => (
@@ -239,30 +239,30 @@ export default function CampaignsPage() {
           </div>
 
           <div>
-            <label className="block text-xs uppercase mb-1" style={{ color: '#667781' }}>Tag Filter (optional)</label>
+            <label className="block text-xs uppercase mb-1" style={{ color: '#3B4A54' }}>Tag Filter (optional)</label>
             <input
               type="text"
               value={broadcastTag}
               onChange={(e) => setBroadcastTag(e.target.value)}
               placeholder="Filter recipients by tag…"
               className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-              style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+              style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
               onFocus={(e) => (e.target.style.borderColor = '#25D366')}
-              onBlur={(e) => (e.target.style.borderColor = '#E0E0E0')}
+              onBlur={(e) => (e.target.style.borderColor = '#B8C1C8')}
             />
           </div>
 
           <div>
-            <label className="block text-xs uppercase mb-1" style={{ color: '#667781' }}>Message</label>
+            <label className="block text-xs uppercase mb-1" style={{ color: '#3B4A54' }}>Message</label>
             <textarea
               value={broadcastMsg}
               onChange={(e) => setBroadcastMsg(e.target.value)}
               placeholder="Write your broadcast message…"
               rows={5}
               className="w-full px-3 py-2 rounded-lg text-sm resize-none outline-none"
-              style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+              style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
               onFocus={(e) => (e.target.style.borderColor = '#25D366')}
-              onBlur={(e) => (e.target.style.borderColor = '#E0E0E0')}
+              onBlur={(e) => (e.target.style.borderColor = '#B8C1C8')}
             />
           </div>
 
@@ -282,31 +282,31 @@ export default function CampaignsPage() {
       {/* Create Modal */}
       {showCreate && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-md rounded-xl border p-6 space-y-4 animate-fade-in" style={{ background: '#FFFFFF', borderColor: '#E0E0E0', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+          <div className="w-full max-w-md rounded-xl border p-6 space-y-4 animate-fade-in" style={{ background: '#FFFFFF', borderColor: '#B8C1C8', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold" style={{ color: '#111B21' }}>New Campaign</h2>
-              <button onClick={() => setShowCreate(false)} className="cursor-pointer bg-transparent border-none text-xl" style={{ color: '#667781' }}>&times;</button>
+              <h2 className="text-lg font-bold" style={{ color: '#0B141A' }}>New Campaign</h2>
+              <button onClick={() => setShowCreate(false)} className="cursor-pointer bg-transparent border-none text-xl" style={{ color: '#3B4A54' }}>&times;</button>
             </div>
             <div>
-              <label className="block text-xs uppercase mb-1" style={{ color: '#667781' }}>Campaign Name</label>
+              <label className="block text-xs uppercase mb-1" style={{ color: '#3B4A54' }}>Campaign Name</label>
               <input
                 type="text"
                 value={newCampaign.name}
                 onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
                 placeholder="e.g. Summer Promotion"
                 className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-                style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+                style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
                 onFocus={(e) => (e.target.style.borderColor = '#25D366')}
-                onBlur={(e) => (e.target.style.borderColor = '#E0E0E0')}
+                onBlur={(e) => (e.target.style.borderColor = '#B8C1C8')}
               />
             </div>
             <div>
-              <label className="block text-xs uppercase mb-1" style={{ color: '#667781' }}>Type</label>
+              <label className="block text-xs uppercase mb-1" style={{ color: '#3B4A54' }}>Type</label>
               <select
                 value={newCampaign.campaign_type}
                 onChange={(e) => setNewCampaign({ ...newCampaign, campaign_type: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg text-sm outline-none cursor-pointer"
-                style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+                style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
               >
                 <option value="drip">Drip</option>
                 <option value="broadcast">Broadcast</option>
@@ -314,24 +314,24 @@ export default function CampaignsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs uppercase mb-1" style={{ color: '#667781' }}>Trigger Event (optional)</label>
+              <label className="block text-xs uppercase mb-1" style={{ color: '#3B4A54' }}>Trigger Event (optional)</label>
               <input
                 type="text"
                 value={newCampaign.trigger_event}
                 onChange={(e) => setNewCampaign({ ...newCampaign, trigger_event: e.target.value })}
                 placeholder="e.g. new_lead, order_confirmed"
                 className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-                style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+                style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
                 onFocus={(e) => (e.target.style.borderColor = '#25D366')}
-                onBlur={(e) => (e.target.style.borderColor = '#E0E0E0')}
+                onBlur={(e) => (e.target.style.borderColor = '#B8C1C8')}
               />
             </div>
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setShowCreate(false)}
                 className="flex-1 py-2.5 rounded-lg text-sm cursor-pointer font-medium transition-all"
-                style={{ color: '#667781', border: '1px solid #E0E0E0', background: '#FFFFFF' }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#F0F2F5')}
+                style={{ color: '#3B4A54', border: '1px solid #B8C1C8', background: '#FFFFFF' }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#EAEDEE')}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#FFFFFF')}
               >
                 Cancel

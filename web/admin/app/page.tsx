@@ -28,23 +28,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#F0F2F5' }}>
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#EAEDEE' }}>
       <div className="w-full max-w-sm animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">💬</div>
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#075E54' }}>WhatsApp CRM SA</h1>
-          <p className="text-sm mt-1" style={{ color: '#667781' }}>Admin Dashboard</p>
+          <p className="text-sm mt-1" style={{ color: '#3B4A54' }}>Admin Dashboard</p>
         </div>
 
         {/* Card */}
         <div
           className="rounded-xl p-7 border"
-          style={{ background: '#FFFFFF', borderColor: '#E0E0E0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+          style={{ background: '#FFFFFF', borderColor: '#B8C1C8', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
         >
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#667781' }}>
+              <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#3B4A54' }}>
                 Email
               </label>
               <input
@@ -52,15 +52,15 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-lg text-sm transition-colors outline-none"
-                style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+                style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
                 onFocus={(e) => (e.target.style.borderColor = '#25D366')}
-                onBlur={(e) => (e.target.style.borderColor = '#E0E0E0')}
+                onBlur={(e) => (e.target.style.borderColor = '#B8C1C8')}
                 placeholder="admin@whatsapp-crm.com"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#667781' }}>
+              <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#3B4A54' }}>
                 Password
               </label>
               <input
@@ -68,9 +68,9 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-lg text-sm transition-colors outline-none"
-                style={{ color: '#111B21', background: '#F0F2F5', border: '1px solid #E0E0E0' }}
+                style={{ color: '#0B141A', background: '#EAEDEE', border: '1px solid #B8C1C8' }}
                 onFocus={(e) => (e.target.style.borderColor = '#25D366')}
-                onBlur={(e) => (e.target.style.borderColor = '#E0E0E0')}
+                onBlur={(e) => (e.target.style.borderColor = '#B8C1C8')}
                 placeholder="••••••••"
                 required
               />
@@ -100,10 +100,10 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-5 pt-4" style={{ borderTop: '1px solid #E0E0E0' }}>
-            <p className="text-[11px]" style={{ color: '#667781' }}>
-              Default: <span style={{ color: '#111B21' }}>admin@whatsapp-crm.com</span> /{' '}
-              <span style={{ color: '#111B21' }}>changeme123</span>
+          <div className="mt-5 pt-4" style={{ borderTop: '1px solid #B8C1C8' }}>
+            <p className="text-[11px]" style={{ color: '#3B4A54' }}>
+              Default: <span style={{ color: '#0B141A' }}>admin@whatsapp-crm.com</span> /{' '}
+              <span style={{ color: '#0B141A' }}>changeme123</span>
             </p>
           </div>
         </div>

@@ -26,13 +26,13 @@ function StatCard({
       className={cardClass}
       style={{
         background: '#FFFFFF',
-        borderColor: '#E0E0E0',
+        borderColor: '#B8C1C8',
         animationDelay: `${delay}ms`,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
       }}
     >
-      <p className="text-xs uppercase tracking-wider mb-2" style={{ color: '#667781' }}>{label}</p>
-      <p className="text-2xl font-bold" style={{ color: '#111B21' }}>{typeof value === 'number' ? value.toLocaleString() : value}</p>
+      <p className="text-xs uppercase tracking-wider mb-2" style={{ color: '#3B4A54' }}>{label}</p>
+      <p className="text-2xl font-bold" style={{ color: '#0B141A' }}>{typeof value === 'number' ? value.toLocaleString() : value}</p>
       {sub && <p className="text-xs mt-1" style={{ color: accent || '#25D366' }}>{sub}</p>}
     </div>
   );
@@ -63,7 +63,7 @@ export default function DashboardPage() {
   }, [router]);
 
   if (loading)
-    return <div className="flex items-center justify-center h-64" style={{ color: '#667781' }}>Loading…</div>;
+    return <div className="flex items-center justify-center h-64" style={{ color: '#3B4A54' }}>Loading…</div>;
   if (error) return <div className="text-red-600 text-sm">{error}</div>;
   if (!data) return null;
 
@@ -72,8 +72,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: '#111B21' }}>Dashboard</h1>
-        <p className="text-sm mt-0.5" style={{ color: '#667781' }}>Overview of your WhatsApp CRM instance</p>
+        <h1 className="text-2xl font-bold" style={{ color: '#0B141A' }}>Dashboard</h1>
+        <p className="text-sm mt-0.5" style={{ color: '#3B4A54' }}>Overview of your WhatsApp CRM instance</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

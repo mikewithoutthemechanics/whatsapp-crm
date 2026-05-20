@@ -24,7 +24,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen" style={{ background: '#F0F2F5' }}>
+    <div className="flex min-h-screen" style={{ background: '#EAEDEE' }}>
       <aside className="fixed left-0 top-0 h-full w-[260px] flex flex-col z-50" style={{ background: '#075E54' }}>
         <div className="p-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
           <Link href="/dashboard" className="flex items-center gap-2 text-lg font-semibold text-white no-underline">

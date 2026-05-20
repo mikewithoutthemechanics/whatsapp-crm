@@ -3,15 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --color-bg: #F0F2F5;
+  --color-bg: #EAEDEE;
   --color-primary: #25D366;
   --color-primary-dark: #128C7E;
   --color-teal: #075E54;
-  --color-amber: #F59E0B;
+  --color-amber: #E68A00;
   --color-card: #FFFFFF;
-  --color-border: #E0E0E0;
-  --color-text: #111B21;
-  --color-text-secondary: #667781;
+  --color-border: #B8C1C8;
+  --color-text: #0B141A;
+  --color-text-secondary: #3B4A54;
 }
 
 * {
@@ -34,8 +34,8 @@ html, body {
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.35); }
 
 /* Focus ring */
 :focus-visible {
@@ -64,7 +64,7 @@ html, body {
   padding: 0.75rem 1.25rem;
   font-size: 0.875rem;
   color: var(--color-text);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
   z-index: 9999;
   animation: fadeIn 0.25s ease-out;
 }

@@ -85,32 +85,32 @@ export default function ConversationsPage() {
   };
 
   if (loading)
-    return <div className="flex items-center justify-center h-64" style={{ color: '#667781' }}>Loading…</div>;
+    return <div className="flex items-center justify-center h-64" style={{ color: '#3B4A54' }}>Loading…</div>;
 
   return (
     <div className="space-y-4 h-[calc(100vh-4rem)] flex flex-col">
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: '#111B21' }}>Conversations</h1>
-        <p className="text-sm mt-0.5" style={{ color: '#667781' }}>Live WhatsApp conversations</p>
+        <h1 className="text-2xl font-bold" style={{ color: '#0B141A' }}>Conversations</h1>
+        <p className="text-sm mt-0.5" style={{ color: '#3B4A54' }}>Live WhatsApp conversations</p>
       </div>
 
       <div
         className="flex flex-1 gap-0 rounded-xl border overflow-hidden"
-        style={{ background: '#FFFFFF', borderColor: '#E0E0E0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+        style={{ background: '#FFFFFF', borderColor: '#B8C1C8', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}
       >
         {/* Left pane — conversation list */}
         <div
           className="w-full md:w-[30%] min-w-0 border-r flex flex-col"
-          style={{ borderColor: '#E0E0E0' }}
+          style={{ borderColor: '#B8C1C8' }}
         >
-          <div className="p-4 border-b" style={{ borderColor: '#E0E0E0' }}>
-            <p className="text-xs uppercase tracking-wider font-medium" style={{ color: '#667781' }}>
+          <div className="p-4 border-b" style={{ borderColor: '#B8C1C8' }}>
+            <p className="text-xs uppercase tracking-wider font-medium" style={{ color: '#3B4A54' }}>
               Active Conversations ({conversations.length})
             </p>
           </div>
           <div className="flex-1 overflow-y-auto">
             {conversations.length === 0 && (
-              <p className="p-4 text-sm" style={{ color: '#667781' }}>No conversations yet.</p>
+              <p className="p-4 text-sm" style={{ color: '#3B4A54' }}>No conversations yet.</p>
             )}
             {conversations.map((c) => (
               <button
@@ -121,30 +121,30 @@ export default function ConversationsPage() {
                 }}
                 className="w-full text-left px-4 py-3 transition-all cursor-pointer border-none"
                 style={{
-                  borderBottom: '1px solid #F0F2F5',
-                  background: selected?.id === c.id ? '#F0F2F5' : '#FFFFFF',
+                  borderBottom: '1px solid #EAEDEE',
+                  background: selected?.id === c.id ? '#EAEDEE' : '#FFFFFF',
                 }}
-                onMouseEnter={(e) => { if (selected?.id !== c.id) (e.currentTarget as HTMLButtonElement).style.background = '#F7F8FA'; }}
+                onMouseEnter={(e) => { if (selected?.id !== c.id) (e.currentTarget as HTMLButtonElement).style.background = '#EEF0F2'; }}
                 onMouseLeave={(e) => { if (selected?.id !== c.id) (e.currentTarget as HTMLButtonElement).style.background = '#FFFFFF'; }}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-base shrink-0">💬</span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: '#111B21' }}>{c.contact.name}</p>
-                    <p className="text-xs mt-0.5 truncate" style={{ color: '#667781' }}>{c.contact.phone}</p>
+                    <p className="text-sm font-medium truncate" style={{ color: '#0B141A' }}>{c.contact.name}</p>
+                    <p className="text-xs mt-0.5 truncate" style={{ color: '#3B4A54' }}>{c.contact.phone}</p>
                   </div>
                   <span
                     className="ml-auto shrink-0 text-[10px] px-2 py-0.5 rounded-full uppercase font-semibold"
                     style={{
-                      background: c.status === 'active' ? '#DCF8C620' : c.status === 'waiting' ? '#FFF3CD' : '#F0F2F5',
-                      color: c.status === 'active' ? '#25D366' : c.status === 'waiting' ? '#B8860B' : '#667781',
+                      background: c.status === 'active' ? '#DCF8C620' : c.status === 'waiting' ? '#FFF3CD' : '#EAEDEE',
+                      color: c.status === 'active' ? '#25D366' : c.status === 'waiting' ? '#B8860B' : '#3B4A54',
                     }}
                   >
                     {c.status}
                   </span>
                 </div>
                 {c.last_message && (
-                  <p className="text-xs mt-1 truncate pl-6" style={{ color: '#667781' }}>
+                  <p className="text-xs mt-1 truncate pl-6" style={{ color: '#3B4A54' }}>
                     {c.last_message.text}
                   </p>
                 )}
@@ -158,7 +158,7 @@ export default function ConversationsPage() {
           {selected ? (
             <>
               {/* Header */}
-              <div className="px-5 py-3 border-b flex items-center gap-3" style={{ borderColor: '#E0E0E0', background: '#075E54' }}>
+              <div className="px-5 py-3 border-b flex items-center gap-3" style={{ borderColor: '#B8C1C8', background: '#075E54' }}>
                 <span className="text-xl">💬</span>
                 <div>
                   <p className="text-sm font-semibold text-white">{selected.contact.name}</p>
@@ -168,7 +168,7 @@ export default function ConversationsPage() {
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-5 space-y-3">
-                <div className="text-center text-xs py-6" style={{ color: '#667781' }}>
+                <div className="text-center text-xs py-6" style={{ color: '#3B4A54' }}>
                   WhatsApp CRM SA — {selected.contact.name}
                 </div>
                 {messages.map((m, i) => (
@@ -180,7 +180,7 @@ export default function ConversationsPage() {
                       className="max-w-[75%] px-3.5 py-2 rounded-2xl text-sm"
                       style={{
                         background: m.from === 'me' ? '#DCF8C6' : '#FFFFFF',
-                        color: '#111B21',
+                        color: '#0B141A',
                         borderBottomRightRadius: m.from === 'me' ? '4px' : '16px',
                         borderBottomLeftRadius: m.from === 'me' ? '16px' : '4px',
                         boxShadow: '0 1px 1px rgba(0,0,0,0.06)',
@@ -194,14 +194,14 @@ export default function ConversationsPage() {
               </div>
 
               {/* Quick replies */}
-              <div className="px-4 pb-2 flex flex-wrap gap-1.5 pt-2" style={{ borderTop: '1px solid #E0E0E0', background: '#F0F2F5' }}>
+              <div className="px-4 pb-2 flex flex-wrap gap-1.5 pt-2" style={{ borderTop: '1px solid #B8C1C8', background: '#EAEDEE' }}>
                 {QUICK_REPLIES.map(({ key, label }) => (
                   <button
                     key={key}
                     onClick={() => handleQuickReply(key)}
                     disabled={quickLoading !== null}
                     className="text-[11px] px-2.5 py-1 rounded-full transition-all cursor-pointer disabled:opacity-30"
-                    style={{ background: '#FFFFFF', color: '#075E54', border: '1px solid #E0E0E0' }}
+                    style={{ background: '#FFFFFF', color: '#075E54', border: '1px solid #B8C1C8' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#DCF8C6'; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#FFFFFF'; }}
                   >
@@ -211,7 +211,7 @@ export default function ConversationsPage() {
               </div>
 
               {/* Input */}
-              <div className="p-4 flex gap-2" style={{ background: '#F0F2F5', borderTop: '1px solid #E0E0E0' }}>
+              <div className="p-4 flex gap-2" style={{ background: '#EAEDEE', borderTop: '1px solid #B8C1C8' }}>
                 <input
                   type="text"
                   value={input}
@@ -219,9 +219,9 @@ export default function ConversationsPage() {
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="Type a message…"
                   className="flex-1 px-4 py-2.5 rounded-xl text-sm outline-none"
-                  style={{ color: '#111B21', background: '#FFFFFF', border: '1px solid #E0E0E0' }}
+                  style={{ color: '#0B141A', background: '#FFFFFF', border: '1px solid #B8C1C8' }}
                   onFocus={(e) => (e.target.style.borderColor = '#25D366')}
-                  onBlur={(e) => (e.target.style.borderColor = '#E0E0E0')}
+                  onBlur={(e) => (e.target.style.borderColor = '#B8C1C8')}
                 />
                 <button
                   onClick={handleSend}
@@ -235,7 +235,7 @@ export default function ConversationsPage() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-sm" style={{ color: '#667781' }}>
+            <div className="flex-1 flex items-center justify-center text-sm" style={{ color: '#3B4A54' }}>
               Select a conversation to start chatting
             </div>
           )}
