@@ -769,8 +769,6 @@ def openwa_webhook(request: Request):
     return {"status": "received"}
 
 
-from pathlib import Path
-
 from pathlib import Path as _P
 import sys as _sys
 
@@ -782,16 +780,9 @@ if _workspace_root.exists() and str(_workspace_root) not in _sys.path:
 # ─── Load landing page HTML at module level ──────────────────
 _LANDING_HTML: Optional[str] = None
 _CANDIDATE_PATHS = [
-    Path(__file__).resolve().parent.parent / "public" / "index.html",
-    Path("/public/index.html"),
+    _P(__file__).resolve().parent.parent / "public" / "index.html",
+    _P("/public/index.html"),
 ]
-_LOGGED_LP = False
-def _log_lp():
-    global _LOGGED_LP
-    if _LOGGED_LP:
-        return
-    _LOGGED_LP = True
-    logger.info("Landing-page paths: %s", {str(p): str(p).exists() for p in _CANDIDATE_PATHS})
 for _cp in _CANDIDATE_PATHS:
     if _cp.exists():
         try:
@@ -805,11 +796,10 @@ for _cp in _CANDIDATE_PATHS:
 
 @app.get("/", include_in_schema=False)
 def root():
-    _log_lp()
     if _LANDING_HTML:
         from fastapi.responses import HTMLResponse
         return HTMLResponse(content=_LANDING_HTML)
-    return _LANDING_HTML or {"product": "WhatsApp CRM SA", "status": "ok"}
+    return {"product": "WhatsApp CRM SA", "status": "ok", "version": "0.1.4"}
 
 
 # ─── Error handler ────────────────────────────────────────────
