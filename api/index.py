@@ -778,18 +778,17 @@ if _workspace_root.exists() and str(_workspace_root) not in _sys.path:
     _sys.path.insert(0, str(_workspace_root))
 
 # ─── Load landing page HTML at module level ──────────────────
+_cwd = _P.cwd()
 _LANDING_HTML: Optional[str] = None
-_CANDIDATE_PATHS = [
-    _P(__file__).resolve().parent.parent / "public" / "index.html",
-    _P("/public/index.html"),
-]
-for _cp in _CANDIDATE_PATHS:
-    if _cp.exists():
+for _loc in [_cwd, _cwd.parent, _P("/vercel/workpath0"), _P("/vercel/path1")]:
+    _lp = _loc / "public" / "index.html"
+    if _lp.exists():
         try:
-            _LANDING_HTML = _cp.read_text(encoding="utf-8")
+            _LANDING_HTML = _lp.read_text(encoding="utf-8")
+            break
         except Exception:
             pass
-        break
+logger.info("Landing page loaded=%s cwd=%s", _LANDING_HTML is not None, _cwd)
 
 
 # ─── Root ─────────────────────────────────────────────────────
