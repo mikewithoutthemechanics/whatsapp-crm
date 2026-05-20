@@ -11,17 +11,17 @@
 
 <!-- Sidebar -->
 <div class="flex h-screen">
-    <aside class="w-64 bg-indigo-700 text-white flex flex-col">
+    <aside class="w-64 text-white flex flex-col" style="background:#075E54">
         <div class="p-4 font-bold text-lg">🗨️ WhatsApp CRM SA</div>
         <nav class="flex-1 p-4 space-y-2">
-            <a href="#" class="block px-4 py-2 rounded hover:bg-indigo-600 transition">📊 Dashboard</a>
-            <a href="#" class="block px-4 py-2 rounded hover:bg-indigo-600 transition">💬 Conversations</a>
-            <a href="#" class="block px-4 py-2 rounded hover:bg-indigo-600 transition">👥 Contacts</a>
-            <a href="#" class="block px-4 py-2 rounded hover:bg-indigo-600 transition">📢 Campaigns</a>
-            <a href="#" class="block px-4 py-2 rounded hover:bg-indigo-600 transition">🤖 AI Config</a>
-            <a href="#" class="block px-4 py-2 rounded hover:bg-indigo-600 transition">⚙️ Settings</a>
+            <a href="#" class="block px-4 py-2 rounded hover:bg-white/10 transition">📊 Dashboard</a>
+            <a href="#" class="block px-4 py-2 rounded hover:bg-white/10 transition">💬 Conversations</a>
+            <a href="#" class="block px-4 py-2 rounded hover:bg-white/10 transition">👥 Contacts</a>
+            <a href="#" class="block px-4 py-2 rounded hover:bg-white/10 transition">📢 Campaigns</a>
+            <a href="#" class="block px-4 py-2 rounded hover:bg-white/10 transition">🤖 AI Config</a>
+            <a href="#" class="block px-4 py-2 rounded hover:bg-white/10 transition">⚙️ Settings</a>
         </nav>
-        <div class="p-4 border-t border-indigo-600 text-sm opacity-70">
+        <div class="p-4 border-t border-white/20 text-sm opacity-70">
             SA Edition • V1.0
         </div>
     </aside>
@@ -33,7 +33,7 @@
             <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
             <div class="flex items-center space-x-4">
                 <span class="text-sm text-gray-500" id="clock"></span>
-                <button onclick="location.reload()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                <button onclick="location.reload()" class="text-white px-4 py-2 rounded-lg" style="background:#25D366" onmouseover="this.style.background='#128C7E'" onmouseout="this.style.background='#25D366'">
                     🔄 Refresh
                 </button>
             </div>
@@ -41,7 +41,7 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-xl shadow p-6 border-l-4 border-indigo-500">
+            <div class="bg-white rounded-xl shadow p-6 border-l-4" style="border-color:#25D366">
                 <div class="text-sm text-gray-500">Active Conversations</div>
                 <div class="text-3xl font-bold text-gray-800" id="active-convs">0</div>
             </div>
@@ -98,7 +98,7 @@
             <div class="flex gap-4">
                 <input type="text" id="ai-test-input" placeholder="Type a customer message..."
                        class="flex-1 border rounded-lg px-4 py-2">
-                <button onclick="testAI()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
+                <button onclick="testAI()" class="text-white px-6 py-2 rounded-lg" style="background:#25D366" onmouseover="this.style.background='#128C7E'" onmouseout="this.style.background='#25D366'">
                     Generate Reply
                 </button>
             </div>
@@ -148,8 +148,8 @@ new Chart(document.getElementById('messageChart'), {
         datasets: [{
             label: 'Messages',
             data: [24, 43, 38, 52, 41, 28, 15],
-            borderColor: '#6366f1',
-            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            borderColor: '#25D366',
+            backgroundColor: 'rgba(37, 211, 102, 0.1)',
             fill: true,
             tension: 0.4,
         }]
@@ -164,7 +164,7 @@ new Chart(document.getElementById('pipelineChart'), {
         datasets: [{
             label: 'Leads',
             data: [28, 15, 8, 3],
-            backgroundColor: ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd'],
+            backgroundColor: ['#075E54', '#128C7E', '#25D366', '#DCF8C6'],
         }]
     },
     options: { ...chartDefaults, plugins: { legend: { display: false } }, indexAxis: 'y' }
