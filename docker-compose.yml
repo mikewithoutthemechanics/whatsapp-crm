@@ -1,23 +1,90 @@
 version: '3.8'
 
 services:
+  # ─── WhatsApp CRM SA — FastAPI backend ────────────────────
   app:
     build: .
     ports:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/whatsapp_crm
+      - WHATSAPP_PROVIDER=${WHATSAPP_PROVIDER:-openwa}
+
+      # ── OpenWA ───────────────────────────────────────────
+      - OPENWA_API_URL=${OPENWA_API_URL:-http://openwa:2785}
+      - OPENWA_API_KEY=${OPENWA_API_KEY}
+      - OPENWA_SESSION_ID=${OPENWA_SESSION_ID:-default}
+      - OPENWA_HMAC_KEY=${OPENWA_HMAC_KEY}
+      - OPENWA_TIMEOUT=${OPENWA_TIMEOUT:-30}
+
+      # ── AI ───────────────────────────────────────────────
       - GROQ_API_KEY=${GROQ_API_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-      - WHATSAPP_PROVIDER=${WHATSAPP_PROVIDER:-meta}
-      - META_PHONE_NUMBER_ID=${META_PHONE_NUMBER_ID}
-      - META_ACCESS_TOKEN=${META_ACCESS_TOKEN}
       - AI_PROVIDER=${AI_PROVIDER:-auto}
+      - APP_NAME=${APP_NAME}
+      - APP_URL=${APP_URL}
+      - DEBUG=${DEBUG:-true}
+      - SECRET_KEY=${SECRET_KEY}
+      - SA_TIMEZONE=${SA_TIMEZONE:-Africa/Johannesburg}
+
+      # SAURCE conversation: don't expose into FastAPI container
+      - AFRICASTALKING_API_KEY=${AFRICASTALKING_API_KEY}
+      - AFRICASTALKING_USERNAME=${AFRICASTALKING_USERNAME}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL}
+      - PAYFAST_MERCHANT_ID=${PAYFAST_MERCHANT_ID}
+      - PAYFAST_MERCHANT_KEY=${PAYFAST_MERCHANT_KEY}
+      - PAYFAST_PASSPHRASE=${PAYFAST_PASSPHRASE}
+      - SUPABASE_STORAGE_URL=${SUPABASE_STORAGE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
     depends_on:
       - db
+      - openwa
     restart: unless-stopped
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level info
 
+  # ─── OpenWA v0.1.4 — Self-hosted WhatsApp Gateway ──────────
+  # Start before the CRM so it's ready on first connection.
+  # First run: Docker will pull the image automatically.
+  # Visit http://localhost:2886 to scan your QR code and create a session.
+  openwa:
+    image: rmyndharis/openwa:0.1.4
+    ports:
+      - "2886:2886"   # dashboard
+      - "2785:2785"   # REST API
+    environment:
+      # Let OpenWA use its built-in defaults (SQLite + LocalFS)
+      # Override those here to add PostgreSQL or S3 storage:
+      # OPENWA_DB_TYPE=postgresql
+      # OPENWA_DB_HOST=db
+      # OPENWA_DB_PORT=5432
+      # OPENWA_DB_USER=postgres
+      # OPENWA_DB_PASSWORD=postgres
+      # OPENWA_DB_NAME=openwa
+      - NODE_ENV=production
+    volumes:
+      - openwa-data:/app/data    # persist sessions, config, media
+    restart: unless-stopped
+    shm_size: 1G                # Chrome/Chromium needs more shared memory
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:2785/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - default
+
+  # ─── PostgreSQL (CRM app) ──────────────────────────────────
   db:
     image: postgres:16
     environment:
@@ -29,12 +96,25 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Optional: Grafana for monitoring
-  # grafana:
-  #   image: grafana/grafana
-  #   ports:
-  #     - "3000:3000"
+  # ─── Optional: OpenWA + CRM shared DB (uncomment if using PostgreSQL backend for OpenWA) ─
+  # openwa can share this db on a separate schema:
+  #   OPENWA_DB_TYPE=postgresql
+  #   OPENWA_DB_HOST=db
+  #   OPENWA_DB_DATABASE=postgres
+
+# ─── External service note ─────────────────────────────────
+# Start OpenWA first, then the CRM:
+#   docker compose up -d openwa db
+#   # → open http://localhost:2886 → scan QR → copy API key
+#   export OPENWA_API_KEY=ow_live_YYYYYYYYYY
+#   docker compose up -d app
 
 volumes:
   postgres_data:
+  openwa-data:
