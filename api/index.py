@@ -771,6 +771,14 @@ def openwa_webhook(request: Request):
 
 from pathlib import Path
 
+from pathlib import Path as _P
+import sys as _sys
+
+# Add workspace root to sys.path so __file__ resolves correctly
+_workspace_root = _P(__file__).resolve().parent.parent
+if _workspace_root.exists() and str(_workspace_root) not in _sys.path:
+    _sys.path.insert(0, str(_workspace_root))
+
 # ─── Load landing page HTML at module level ──────────────────
 _LANDING_HTML: Optional[str] = None
 _CANDIDATE_PATHS = [
