@@ -1,9 +1,12 @@
 {
+  "buildCommand": "echo 'static web page / no build needed'",
+  "outputDirectory": "public",
+  "framework": null,
   "builds": [
     { "src": "api/index.py", "use": "@vercel/python@6.42.0" }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/" },
-    { "source": "/health",    "destination": "/" }
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/health",    "destination": "/api/index.py" }
   ]
 }
