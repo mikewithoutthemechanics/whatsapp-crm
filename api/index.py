@@ -773,13 +773,21 @@ from pathlib import Path
 
 # ─── Load landing page HTML at module level ──────────────────
 _LANDING_HTML: Optional[str] = None
-_ROOT_DIR = Path(__file__).resolve().parent.parent
+_ROOT_DIR = Path(__file__).resolve().parent.parent   # api/ → repo root
 _LP_PATH = _ROOT_DIR / "public" / "index.html"
+_LOGGED_PATHS = False
+def _log_paths():
+    global _LOGGED_PATHS
+    if _LOGGED_PATHS:
+        return
+    _LOGGED_PATHS = True
+    logger.info("_ROOT_DIR=%s, _LANDING_HTML=%s", _ROOT_DIR, _LANDING_HTML is not None)
 if _LP_PATH.exists():
     try:
         _LANDING_HTML = _LP_PATH.read_text(encoding="utf-8")
     except Exception:
         pass
+
 
 # ─── Root ─────────────────────────────────────────────────────
 
