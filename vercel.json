@@ -1,5 +1,12 @@
 {
-  "buildCommand": "echo 'static / web page / no build needed'",
+  "buildCommand": "echo 'static web page / no build needed'",
   "outputDirectory": "public",
-  "framework": null
+  "framework": null,
+  "functions": {
+    "api/**/*.py": {
+      "runtime": "@vercel/python@6.42.0",
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  }
 }
