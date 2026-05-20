@@ -1,12 +1,9 @@
 {
-  "buildCommand": "echo 'static web page / no build needed'",
-  "outputDirectory": "public",
-  "framework": null,
-  "functions": {
-    "api/**/*.py": {
-      "runtime": "@vercel/python@6.42.0",
-      "maxDuration": 30,
-      "memory": 1024
-    }
-  }
+  "builds": [
+    { "src": "api/index.py", "use": "@vercel/python@6.42.0" }
+  ],
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/" },
+    { "source": "/health",    "destination": "/" }
+  ]
 }
