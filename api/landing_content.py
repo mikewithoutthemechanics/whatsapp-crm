@@ -1,0 +1,346 @@
+"""
+Landing page HTML embedding
+Embeds public/index.html as a string
+"""
+
+LANDING_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="WhatsApp CRM SA - The free WhatsApp CRM for South African SMMEs. AI auto-replies, lead scoring, drip campaigns. Zero per-message costs."/>
+  <title>WhatsApp CRM SA - Free WhatsApp CRM for SA SMMEs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{display:["Playfair Display","Georgia","serif"],body:["Inter","system-ui","sans-serif"]}}}}</script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" defer></script>
+  <style>
+    *,*:before,*:after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:auto;overflow-x:hidden}
+    body{font-family:Inter,system-ui,sans-serif;background:#F9FAFB;color:#111827;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    #grain{position:fixed;inset:0;z-index:10000;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");background-size:200px;opacity:.5}
+    .vignette{position:fixed;inset:0;z-index:9998;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 50%,rgba(249,250,251,.85) 100%)}
+    .r0{opacity:0;transform:translateY(40px)}.rL{opacity:0;transform:translateX(-40px)}.rR{opacity:0;transform:translateX(40px)}.rS{opacity:0;transform:scale(.92)}
+    .headline{font-family:Playfair Display,Georgia,serif;font-weight:900;line-height:1.04;letter-spacing:-.03em}
+    .eyebrow{font-weight:600;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase}
+    .btnW{display:inline-flex;align-items:center;gap:.55rem;padding:1.05rem 2.75rem;background:linear-gradient(135deg,#25D366,#128C7E);color:white;font-weight:700;font-size:1rem;border-radius:999px;border:none;text-decoration:none;position:relative;overflow:hidden;box-shadow:0 4px 25px rgba(37,211,102,.3);transition:transform .3s,box-shadow .3s}
+    .btnW::after{content:"";position:absolute;inset:-50%;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.1) 50%,transparent 70%);transform:translateX(-100%) rotate(25deg);animation:shim 3s infinite}
+    @keyframes shim{to{transform:translateX(200%) rotate(25deg)}}
+    .btnW:hover{transform:translateY(-4px);box-shadow:0 12px 45px rgba(37,211,102,.5)}
+    .btnG{display:inline-flex;align-items:center;gap:.5rem;padding:1rem 2.5rem;background:transparent;color:#111827;font-weight:600;font-size:1rem;border:1px solid rgba(209,213,219,.35);border-radius:999px;text-decoration:none;transition:border-color .3s,color .3s}
+    .btnG:hover{border-color:rgba(37,211,102,.6);color:#128C7E}
+    .glass{background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:1.5rem}
+    nav{backdrop-filter:blur(16px);background:rgba(255,255,255,.8);border-bottom:1px solid rgba(0,0,0,.06)}
+    .nl{position:relative;color:rgba(107,114,128,.7);text-decoration:none;transition:color .3s}
+    .nl::after{content:"";position:absolute;bottom:-3px;left:0;width:0;height:1px;background:#128C7E;transition:width .3s}
+    .nl:hover{color:rgba(37,211,102,1)}.nl:hover::after{width:100%}
+    .mesh{background:radial-gradient(ellipse at 18% 20%,rgba(37,211,102,.15) 0%,transparent 55%),radial-gradient(ellipse at 82% 75%,rgba(16,185,129,.1) 0%,transparent 55%),radial-gradient(ellipse at 50% 90%,rgba(37,211,102,.05) 0%,transparent 70%),#F9FAFB}
+    .meshGreen{background:radial-gradient(ellipse at 82% 20%,rgba(37,211,102,.12) 0%,transparent 55%),radial-gradient(ellipse at 18% 80%,rgba(16,185,129,.08) 0%,transparent 55%),#F9FAFB}
+    .mq{display:flex;width:max-content;animation:mq 28s linear infinite}
+    @keyframes mq{to{transform:translateX(-50%)}}
+    .mi{white-space:nowrap;padding:0 2.5rem;color:rgba(107,114,128,.25);font-size:.82rem;letter-spacing:.12em}
+    .G{background:linear-gradient(135deg,#25D366,#128C7E,#25D366);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .cnt{font-variant-numeric:tabular-nums}
+    .cw{border-radius:.8rem;overflow:hidden}
+    .ctb{display:flex;align-items:center;gap:.4rem;padding:.7rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);background:rgba(37,211,102,.05)}
+    .dot{width:11px;height:11px;border-radius:50%}
+    pre{padding:1.2rem;background:rgba(255,255,255,.6);border:1px solid rgba(0,0,0,.06);line-height:1.75;overflow-x:auto;font-size:.82rem}
+    code{color:rgba(55,65,81,.7);font-family:JetBrains Mono,monospace}
+    .divider{height:1px;max-width:5rem;margin:0 auto}
+    .fcard{transition:transform .4s,border-color .4s,box-shadow .4s}
+    .fcard:hover{transform:translateY(-8px);border-color:rgba(37,211,102,.3);box-shadow:0 20px 60px rgba(0,0,0,.08),0 0 24px rgba(37,211,102,.12)}
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#F9FAFB}::-webkit-scrollbar-thumb{background:rgba(37,211,102,.25);border-radius:3px}
+  </style>
+</head>
+<body class="nav-scroll">
+<div id="grain"></div>
+<div class="vignette"></div>
+
+<!-- NAV -->
+<nav class="fixed top-0 left-0 right-0 z-[6000] border-b border-gray-200/[.04]">
+  <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="#hero" class="flex items-center gap-2 text-gray-50 no-underline"><span class="text-xl">&#128172;</span><span class="font-bold text-base tracking-tight">WhatsApp CRM SA</span></a>
+    <div class="hidden md:flex items-center gap-8 text-sm">
+      <a href="#problem" class="nl">Problem</a>
+      <a href="#solution" class="nl">Solution</a>
+      <a href="#features" class="nl">Features</a>
+      <a href="#tech" class="nl">Tech</a>
+      <a href="#pricing" class="nl">Pricing</a>
+      <a href="#cta" class="btnW !py-2.5 !px-5 text-sm">Get Started</a>
+    </div>
+    <button id="mob-btn" class="md:hidden text-gray-700 text-2xl bg-none border-none cursor-pointer p-0" aria-label="Menu">&#9776;</button>
+  </div>
+  <div id="mob-menu" class="hidden md:hidden border-t border-gray-200/[.04] bg-white/[.95] backdrop-blur-xl">
+    <div class="px-6 py-4 space-y-3 text-gray-800">
+      <a href="#problem" class="block">Problem</a><a href="#solution" class="block">Solution</a><a href="#features" class="block">Features</a><a href="#tech" class="block">Tech</a><a href="#pricing" class="block">Pricing</a><a href="#cta" class="btnW !py-2 inline-flex text-sm">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden mesh">
+  <canvas id="hero-canvas" class="absolute inset-0 w-full h-full"></canvas>
+  <div class="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-ink to-transparent z-10"></div>
+  <div class="relative z-20 text-center px-6 pt-20 pb-36 max-w-5xl mx-auto">
+    <div class="eyebrow text-green-500 mb-6 r0" id="h-eye">Self-Hosted &middot; Open Source &middot; Zero Per-Message Fees</div>
+    <h1 class="headline text-[clamp(2.6rem,9vw,7.5rem)] mb-8 leading-none r0" id="h-title">
+      Every missed<br/><span class="G">WhatsApp</span><br/>message is<br/><span class="text-gray-800">revenue on the floor.</span>
+    </h1>
+    <p class="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-12 r0" id="h-sub">
+      The free WhatsApp CRM for South African <strong class="text-gray-800">SMMEs</strong>. AI auto-replies &middot; lead scoring &middot; drip campaigns &mdash; all on <strong class="text-green-600">OpenWA</strong>. <strong class="text-gray-800">R0/month to start.</strong>
+    </p>
+    <div class="flex flex-wrap gap-4 justify-center r0" id="h-ctas">
+      <a href="#cta" class="btnW text-lg py-4 px-12">Start Free &mdash; 5 min</a>
+      <a href="#problem" class="btnG text-lg py-4 px-8">See the Problem &#8595;</a>
+    </div>
+  </div>
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 opacity-25 animate-bounce"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="1.5"><path d="M12 5v14m0 0l-5-5m5 5l5-5"/></svg></div>
+</section>
+
+<!-- MARQUEE -->
+<div class="py-4 overflow-hidden border-y border-gray-200/[.04] bg-gray-100/[.5] backdrop-blur-sm relative z-20">
+  <div class="mq"><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span></div>
+</div>
+
+<!-- PROBLEM -->
+<section id="problem" class="relative py-36 px-6">
+  <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-20 items-center">
+    <div>
+      <p class="eyebrow text-green-600 mb-5 r0">The Problem</p>
+      <h2 class="headline text-4xl md:text-6xl mb-7 leading-tight r0">R47k gone.<br/><span class="text-green-600">Every year.</span></h2>
+      <p class="text-gray-500 text-lg leading-relaxed mb-14 r0">SA SMMEs live and die on WhatsApp. A customer messages at 8pm on load-shedding stage 4 mid-weekend. You are busy. The message dies. The lead is gone. Forever.</p>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="glass p-6 fcard r0"><div class="text-3xl font-bold mb-1 text-green-600"><span class="cnt" data-t="82">0</span>%</div><div class="text-gray-400 text-sm">hit by load-shedding</div></div>
+        <div class="glass p-6 fcard r0"><div class="text-3xl font-bold mb-1 text-green-600">R<span class="cnt" data-t="47">0</span>k</div><div class="text-gray-400 text-sm">avg lost per SMME/yr</div></div>
+        <div class="glass p-6 fcard r0"><div class="text-3xl font-bold mb-1 text-green-600"><span class="cnt" data-t="46">0</span>%</div><div class="text-gray-400 text-sm">expect replies in 1hr</div></div>
+        <div class="glass p-6 fcard r0"><div class="text-3xl font-bold mb-1 text-green-600"><span class="cnt" data-t="38">0</span>%</div><div class="text-gray-400 text-sm">lack skills to implement tech</div></div>
+      </div>
+    </div>
+    <div class="rR"><div class="glass p-8 md:p-10 border-amber-400/15 relative">
+      <div class="flex gap-1.5 mb-6"><div class="dot bg-[#ff5f57]"></div><div class="dot bg-[#febc2e]"></div><div class="dot bg-[#28c840]"></div></div>
+      <p class="font-display text-xl md:text-2xl italic text-gray-800 mb-5 leading-relaxed">&#8220;We lost roughly <span class="text-green-600 font-bold" style="font-style:normal">R13,000</span> last month from WhatsApp we never answered.&#8221;</p>
+      <p class="text-gray-400 text-sm">--- Sandton beauty salon, March 2026</p>
+    </div><div class="absolute -inset-12 -z-10 bg-gradient-to-br from-green-500/10 to-transparent blur-3xl"></div></div>
+  </div>
+</section>
+<div class="divider bg-gradient-to-r from-transparent via-green-500/25 to-transparent mx-auto max-w-4xl" style="height:.5px;margin-bottom:-.5px"></div>
+
+<!-- SOLUTION -->
+<section id="solution" class="relative py-36 px-6">
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-green-500/[.03] rounded-full blur-3xl pointer-events-none"></div>
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-20">
+      <p class="eyebrow text-green-500 mb-5 r0">The Solution</p>
+      <h2 class="headline text-4xl md:text-6xl mb-6 r0">AI that never sleeps.<br/><span class="G">No vendor lock-in.</span><br/>R0/month to start.</h2>
+      <p class="text-gray-500 text-lg max-w-2xl mx-auto r0">Built on <strong>OpenWA</strong> (free self-hosted WhatsApp) + <strong>Groq AI</strong> (14 400 free req/day). Zero Meta approval. Zero per-message fees.</p>
+    </div>
+    <div class="max-w-sm mx-auto text-center rS" id="phone">
+      <div class="relative">
+        <div class="bg-gray-100 rounded-3xl border border-gray-200/[.05] overflow-hidden shadow-2xl shadow-accent/10">
+          <div class="flex justify-between items-center px-6 py-2.5 text-[10px] text-gray-400 font-mono"><span id="chat-time">09:41</span><div class="flex gap-1.5"><span>&#128225;</span><span>&#128225;</span><span>&#128267;</span></div></div>
+          <div class="px-5 py-3.5 border-b border-gray-200/[.05] flex items-center gap-3"><div class="w-9 h-9 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-green-600 text-xs font-bold">JD</div><div class="text-left"><div class="text-sm font-semibold text-gray-800">Johannes Dube</div><div class="text-[10px] text-green-600">online</div></div></div>
+          <div class="p-4 space-y-3 min-h-[240px]" id="live-chat"></div>
+        </div>
+        <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 w-2/3 h-12 bg-green-500/14 blur-2xl rounded-full"></div>
+      </div>
+    </div>
+    <div class="mt-16 flex flex-wrap gap-6 justify-center text-gray-400 text-xs r0">
+      <span>&#10003; No Meta approval</span><span>&#10003; Zero per-message fees</span><span>&#10003; Open source MIT</span><span>&#10003; Deploy in 5 min</span>
+    </div>
+  </div>
+</section>
+<div class="divider bg-gradient-to-r from-transparent via-green-500/25 to-transparent mx-auto max-w-4xl" style="height:.5px;margin-bottom:-.5px"></div>
+
+<!-- FEATURES -->
+<section id="features" class="relative py-36 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-20"><p class="eyebrow text-green-500 mb-5 r0">Features</p><h2 class="headline text-4xl md:text-6xl mb-5 r0">Everything you need.<br/><span class="text-gray-400">Nothing you don't.</span></h2></div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div class="glass p-7 fcard r0"><div class="text-3xl mb-4">&#129302;</div><h3 class="font-display text-lg font-bold mb-2">AI Auto-Reply</h3><p class="text-gray-500 text-sm">Groq 14400 req/day free. Greetings pricing bookings. Sounds human. Runs 24/7 on SAST.</p></div>
+      <div class="glass p-7 fcard r0"><div class="text-3xl mb-4">&#11088;</div><h3 class="font-display text-lg font-bold mb-2">Lead Scoring</h3><p class="text-gray-500 text-sm">Every contact scored 0-100. Tag by industry province language. Hot leads at a glance in the dashboard.</p></div>
+      <div class="glass p-7 fcard r0"><div class="text-3xl mb-4">&#128233;</div><h3 class="font-display text-lg font-bold mb-2">Drip Campaigns</h3><p class="text-gray-500 text-sm">Automated sequences on new lead purchase or inactivity. Set once runs forever on SAST timezone.</p></div>
+      <div class="glass p-7 fcard r0"><div class="text-3xl mb-4">&#128225;</div><h3 class="font-display text-lg font-bold mb-2">Broadcast</h3><p class="text-gray-500 text-sm">Send to segments by tag industry or province. Load-shedding aware auto-pauses during Stage 4+.</p></div>
+      <div class="glass p-7 fcard r0"><div class="text-3xl mb-4">&#128018;</div><h3 class="font-display text-lg font-bold mb-2">ZAR + SA Ready</h3><p class="text-gray-500 text-sm">ZAR currency SAST timezone RSA phone numbers PayFast invoicing. Built for South Africa.</p></div>
+      <div class="glass p-7 fcard r0"><div class="text-3xl mb-4">&#128187;</div><h3 class="font-display text-lg font-bold mb-2">Admin Dashboard</h3><p class="text-gray-500 text-sm">Real-time stats live conversation queue pipeline funnel message history all at /dashboard.</p></div>
+      <div class="glass p-7 fcard r0"><div class="text-3xl mb-4">&#128274;</div><h3 class="font-display text-lg font-bold mb-2">JWT Protected</h3><p class="text-gray-500 text-sm">Admin routes behind HMAC-signed JWT tokens. 24-hour exp. Full health at /api/admin/health/detailed.</p></div>
+      <div class="glass p-7 fcard r0"><div class="text-3xl mb-4">&#9889;</div><h3 class="font-display text-lg font-bold mb-2">5-Minute Setup</h3><p class="text-gray-500 text-sm">docker compose up -d then scan QR then paste API key then live. No engineers no Meta approval.</p></div>
+      <div class="glass p-7 fcard r0"><div class="text-3xl mb-4">&#127760;</div><h3 class="font-display text-lg font-bold mb-2">Multilingual AI</h3><p class="text-gray-500 text-sm">English Afrikaans Zulu Xhosa. AI auto-detects and switches. Tag contacts by preferred language.</p></div>
+    </div>
+  </div>
+</section>
+<div class="divider bg-gradient-to-r from-transparent via-green-500/25 to-transparent mx-auto max-w-4xl" style="height:.5px;margin-bottom:-.5px"></div>
+
+<!-- TECH -->
+<section id="tech" class="relative py-36 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-20"><p class="eyebrow text-green-500 mb-5 r0">Tech Stack</p><h2 class="headline text-4xl md:text-6xl mb-5 r0"><span class="G">Three frameworks.</span><br/>Five minutes.<br/>No catch.</h2></div>
+    <div class="max-w-4xl mx-auto grid md:grid-cols-3 gap-5">
+      <div class="glass p-7 text-center fcard r0"><div class="w-14 h-14 rounded-2xl bg-green-500/16 border border-green-500/30 flex items-center justify-center mx-auto mb-5 text-2xl">&#128994;</div><h3 class="font-display text-lg font-bold mb-2">OpenWA v0.1.4</h3><p class="text-gray-500 text-sm mb-4">Self-hosted WhatsApp gateway. REST API web dashboard webhook events HMAC audit. One Docker image.</p><div class="cw border border-gray-200/[.06] bg-white text-left"><div class="ctb"><div class="dot bg-[#ff5f57]"></div><div class="dot bg-[#febc2e]"></div><div class="dot bg-[#28c840]"></div><span class="ml-2 text-gray-500 text-xs mono">docker</span></div><pre><code>docker run -p 2785:2785 -p 2886:2886 \
+  -v openwa-data:/app/data \
+  rmyndharis/openwa:0.1.4</code></pre></div></div>
+      <div class="glass p-7 text-center fcard r0"><div class="w-14 h-14 rounded-2xl bg-green-500/15 border border-green-500/25 flex items-center justify-center mx-auto mb-5 text-2xl">&#129302;</div><h3 class="font-display text-lg font-bold mb-2">Groq AI</h3><p class="text-gray-500 text-sm mb-4">Llama 3.1 500+ tokens/sec. 14400 free calls/day. OpenRouter fallback. No credit card needed.</p><div class="cw border border-gray-200/[.06] bg-white text-left"><div class="ctb"><div class="dot bg-[#ff5f57]"></div><div class="dot bg-[#febc2e]"></div><div class="dot bg-[#28c840]"></div><span class="ml-2 text-gray-500 text-xs mono">config</span></div><pre><code>"provider": "groq",
+"model":     "llama-3.1-8b-instant",
+"temperature": 0.5</code></pre></div></div>
+      <div class="glass p-7 text-center fcard r0"><div class="w-14 h-14 rounded-2xl bg-acc2/15 border border-acc2/25 flex items-center justify-center mx-auto mb-5 text-2xl">&#9889;</div><h3 class="font-display text-lg font-bold mb-2">FastAPI</h3><p class="text-gray-500 text-sm mb-4">Type-safe Python 3.12 async by default. OpenAPI docs at /docs. JWT auth health checks rate-limit.</p><div class="cw border border-gray-200/[.06] bg-white text-left"><div class="ctb"><div class="dot bg-[#ff5f57]"></div><div class="dot bg-[#febc2e]"></div><div class="dot bg-[#28c840]"></div><span class="ml-2 text-gray-500 text-xs mono">shell</span></div><pre><code>uvicorn app.main:app \
+  --host 0.0.0.0 \
+  --port 8000</code></pre></div></div>
+    </div>
+  </div>
+</section>
+<div class="divider bg-gradient-to-r from-transparent via-green-500/25 to-transparent mx-auto max-w-4xl" style="height:.5px;margin-bottom:-.5px"></div>
+
+<!-- PRICING -->
+<section id="pricing" class="relative py-36 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-20"><p class="eyebrow text-green-500 mb-5 r0">Pricing</p><h2 class="headline text-4xl md:text-6xl mb-5 r0">Start free.<br/>Scale when you need.</h2><p class="text-gray-500 text-lg r0">No credit card. No lock-in. 99% of SA SMMEs stay profitable on the free tier.</p></div>
+    <div class="max-w-4xl mx-auto grid md:grid-cols-3 gap-5">
+      <div class="glass p-8 fcard r0"><p class="eyebrow text-gray-500 mb-2">Starter</p><div class="text-5xl font-bold mb-1">R0</div><p class="text-gray-400 text-sm mb-7">/month forever</p><ul class="text-gray-600 text-sm space-y-2.5 mb-8"><li>&#10003; OpenWA self-hosted</li><li>&#10003; 200 conv/day</li><li>&#10003; 14400 AI calls/day</li><li>&#10003; SQLite</li><li>&#10003; Groq free tier</li></ul><a href="#cta" class="btnG w-full !justify-center text-sm">Deploy Free</a></div>
+      <div class="glass p-8 fcard relative border-accent/45 shadow-[0_0_50px_rgba(37,211,102,.15)] r0"><div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-gray-50 text-xs font-semibold px-4 py-1 rounded-full">Most Popular</div><p class="eyebrow text-gray-500 mb-2">Pro</p><div class="text-5xl font-bold mb-1">R599</div><p class="text-gray-400 text-sm mb-7">/month</p><ul class="text-gray-600 text-sm space-y-2.5 mb-8"><li>&#10003; Unlimited messages</li><li>&#10003; Unlimited AI replies</li><li>&#10003; Supabase PostgreSQL</li><li>&#10003; Drip campaigns + broadcast</li><li>&#10003; PayFast invoicing</li></ul><a href="mailto:hello@agentcy.co?subject=WhatsApp%20CRM%20Pro" class="btnW w-full !justify-center text-sm">Get Pro</a></div>
+      <div class="glass p-8 fcard r0"><p class="eyebrow text-gray-500 mb-2">Enterprise</p><div class="text-5xl font-bold mb-1">Custom</div><p class="text-gray-400 text-sm mb-7">on request</p><ul class="text-gray-600 text-sm space-y-2.5 mb-8"><li>&#10003; Multi-location franchises</li><li>&#10003; Custom AI fine-tuning</li><li>&#10003; On-premise deployment</li><li>&#10003; Dedicated SLA</li><li>&#10003; White-label licence</li></ul><a href="mailto:hello@agentcy.co?subject=WhatsApp%20CRM%20Enterprise" class="btnG w-full !justify-center text-sm">Contact Sales</a></div>
+    </div>
+  </div>
+</section>
+<div class="divider bg-gradient-to-r from-transparent via-green-500/25 to-transparent mx-auto max-w-4xl" style="height:.5px;margin-bottom:-.5px"></div>
+
+<!-- HOW -->
+<section id="how" class="relative py-36 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-20"><p class="eyebrow text-green-500 mb-5 r0">How It Works</p><h2 class="headline text-4xl md:text-6xl r0">Five minutes.<br/>That's it.</h2></div>
+    <div class="hidden md:flex items-start justify-between mb-16 relative px-8 r0" id="step-line">
+      <div class="absolute top-5 left-0 right-0 h-[2px] bg-gradient-to-r from-green-500 via-emerald-400 to-transparent"></div>
+      <div class="flex-1 flex flex-col items-center relative z-10 text-center"><div class="w-14 h-14 rounded-full bg-gray-50 border-2 border-accent flex items-center justify-center text-green-500 text-xl font-bold mb-4">1</div><p class="text-gray-600 text-sm max-w-[140px]">Pull &amp; start OpenWA</p></div>
+      <div class="flex-1 flex flex-col items-center relative z-10 text-center"><div class="w-14 h-14 rounded-full bg-gray-50 border-2 border-acc2 flex items-center justify-center text-green-500 text-xl font-bold mb-4">2</div><p class="text-gray-600 text-sm max-w-[140px]">Scan QR - link WhatsApp</p></div>
+      <div class="flex-1 flex flex-col items-center relative z-10 text-center"><div class="w-14 h-14 rounded-full bg-gray-50 border-2 border-acc2 flex items-center justify-center text-green-500 text-xl font-bold mb-4">3</div><p class="text-gray-600 text-sm max-w-[140px]">Copy API key from dashboard</p></div>
+      <div class="flex-1 flex flex-col items-center relative z-10 text-center"><div class="w-14 h-14 rounded-full bg-gray-50 border-2 border-acc2 flex items-center justify-center text-green-500 text-xl font-bold mb-4">4</div><p class="text-gray-600 text-sm max-w-[140px]">6 lines in <code class="text-xs bg-white/10 px-1 rounded">.env</code></p></div>
+      <div class="flex-1 flex flex-col items-center relative z-10 text-center"><div class="w-14 h-14 rounded-full bg-green-500/80 border-2 border-accent flex items-center justify-center text-gray-50 text-xl mb-4 glow">&#10003;</div><p class="text-gray-600 text-sm max-w-[140px]">Start receiving &amp; replying</p></div>
+    </div>
+  </div>
+</section>
+<div class="divider bg-gradient-to-r from-transparent via-green-500/25 to-transparent mx-auto max-w-4xl" style="height:.5px;margin-bottom:-.5px"></div>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" class="relative py-36 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16"><p class="eyebrow text-green-500 mb-5 r0">Beta Feedback</p><h2 class="headline text-4xl md:text-5xl mb-4 r0">Loved before they even launched.</h2></div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="glass p-7 fcard rL"><div class="text-green-600 text-lg mb-3">&#11088;&#11088;&#11088;&#11088;&#11088;</div><p class="text-gray-700 text-sm leading-relaxed mb-4">&#8220;Setup took literally 3 minutes. Docker run scan QR we were live. Would pay for Pro today.&#8221;</p><p class="text-gray-400 text-xs font-mono">--- Auto repair Pretoria &#183; Early Access</p></div>
+      <div class="glass p-7 fcard r0"><div class="text-green-600 text-lg mb-3">&#11088;&#11088;&#11088;&#11088;&#11088;</div><p class="text-gray-700 text-sm leading-relaxed mb-4">&#8220;AI replies are shockingly good for free. Missed less than 10% of enquiries versus 60% before.&#8221;</p><p class="text-gray-400 text-xs font-mono">--- Tutoring centre Cape Town &#183; Beta</p></div>
+      <div class="glass p-7 fcard rR"><div class="text-green-600 text-lg mb-3">&#11088;&#11088;&#11088;&#11088;&#11088;</div><p class="text-gray-700 text-sm leading-relaxed mb-4">&#8220;Finally a CRM that does not cost R2,000/month and understands SA numbers and timezones. Game changer.&#8221;</p><p class="text-gray-400 text-xs font-mono">--- Salon owner Sandton &#183; Beta</p></div>
+    </div>
+  </div>
+</section>
+<div class="divider bg-gradient-to-r from-transparent via-green-500/25 to-transparent mx-auto max-w-4xl" style="height:.5px;margin-bottom:-.5px"></div>
+
+<!-- COMPARISON -->
+<section id="compare" class="relative py-36 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-20"><p class="eyebrow text-green-500 mb-5 r0">Why We Are Different</p><h2 class="headline text-4xl md:text-6xl mb-5 r0">The only CRM for <span class="G">South Africa</span></h2></div>
+    <div class="max-w-3xl mx-auto glass overflow-hidden r0">
+      <div class="grid grid-cols-4 gap-0 border-b border-gray-200/[.06]"><div class="p-5 text-gray-500 text-xs font-semibold uppercase tracking-wider">Feature</div><div class="p-5 text-green-600 text-sm font-bold text-center">WhatsApp CRM SA</div><div class="p-5 text-green-600 text-sm font-medium text-center">Most CRMs</div><div class="p-5 text-gray-500 text-sm font-medium text-center">Meta API</div></div>
+      <div class="grid grid-cols-4 gap-0 border-b border-gray-200/[.04] items-center"><div class="p-4 text-gray-500 text-sm">Price start</div><div class="p-4 text-green-600 text-sm text-center font-semibold">R0/month</div><div class="p-4 text-gray-500 text-sm text-center">R500+/month</div><div class="p-4 text-gray-500 text-sm text-center">Free tier limited</div></div>
+      <div class="grid grid-cols-4 gap-0 border-b border-gray-200/[.04] items-center"><div class="p-4 text-gray-500 text-sm">Meta approval</div><div class="p-4 text-green-600 text-sm text-center font-semibold">Nope</div><div class="p-4 text-red-400/70 text-sm text-center">&#10007; Required</div><div class="p-4 text-red-400/70 text-sm text-center">&#10007; Required</div></div>
+      <div class="grid grid-cols-4 gap-0 border-b border-gray-200/[.04] items-center"><div class="p-4 text-gray-500 text-sm">Per-message fees</div><div class="p-4 text-green-600 text-sm text-center font-semibold">None</div><div class="p-4 text-red-400/70 text-sm text-center">&#10007; Per msg</div><div class="p-4 text-red-400/70 text-sm text-center">&#10007; Per msg</div></div>
+      <div class="grid grid-cols-4 gap-0 border-b border-gray-200/[.04] items-center"><div class="p-4 text-gray-500 text-sm">SAST + ZAR native</div><div class="p-4 text-green-600 text-sm text-center font-semibold">&#10003; Native</div><div class="p-4 text-gray-400 text-sm text-center">&#10007; Often ignored</div><div class="p-4 text-gray-400 text-sm text-center">&#10007; No</div></div>
+      <div class="grid grid-cols-4 gap-0 border-b border-gray-200/[.04] items-center"><div class="p-4 text-gray-500 text-sm">AI auto-reply</div><div class="p-4 text-green-600 text-sm text-center font-semibold">Groq free</div><div class="p-4 text-gray-400 text-sm text-center">Paid add-on</div><div class="p-4 text-gray-400 text-sm text-center">&#10007; None</div></div>
+      <div class="grid grid-cols-4 gap-0 items-center"><div class="p-4 text-gray-500 text-sm">Open source</div><div class="p-4 text-green-600 text-sm text-center font-semibold">&#10003; MIT</div><div class="p-4 text-gray-400 text-sm text-center">&#10007; Proprietary</div><div class="p-4 text-gray-400 text-sm text-center">&#10007; Proprietary</div></div>
+    </div>
+  </div>
+</section>
+<div class="divider bg-gradient-to-r from-transparent via-green-500/25 to-transparent mx-auto max-w-4xl" style="height:.5px;margin-bottom:-.5px"></div>
+
+<!-- CTA -->
+<section id="cta" class="relative py-44 px-6">
+  <div class="absolute inset-0 meshGreen opacity-55"></div>
+  <div class="relative z-10 max-w-3xl mx-auto text-center">
+    <h2 class="headline text-4xl md:text-7xl mb-6 r0">Stop leaving<br/><span class="text-green-600">R13,000</span> on the floor.</h2>
+    <p class="text-gray-500 text-lg md:text-xl mb-12 r0">Deploy in under 5 minutes.<br/>Zero credit card. Zero Meta approval. Open source.</p>
+    <div class="flex flex-wrap gap-4 justify-center r0" id="cta-bottom">
+      <a href="https://github.com/mikewithoutthemechanics/whatsapp-crm" class="btnW text-lg py-4 px-12" target="_blank" rel="noopener">Deploy Free on GitHub</a>
+      <a href="mailto:hello@agentcy.co?subject=WhatsApp%20CRM%20Enquiry" class="btnG text-lg py-4 px-10">Talk to Us</a>
+    </div>
+    <p class="text-gray-400 text-sm mt-8 r0">MIT licence &#183; Forever free &#183; No lock-in</p>
+  </div>
+</section>
+<div class="divider bg-gradient-to-r from-transparent via-green-500/25 to-transparent mx-auto max-w-4xl" style="height:.5px;margin-bottom:-.5px"></div>
+
+<!-- FOOTER -->
+<footer class="relative py-16 px-6 border-t border-gray-200/[.04]">
+  <div class="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
+    <div><div class="flex items-center gap-2 mb-4"><span>&#128172;</span><span class="font-display font-bold">WhatsApp CRM SA</span></div><p class="text-gray-400 text-sm leading-relaxed">Open-source WhatsApp CRM for SA SMMEs. MIT licence forever free no lock-in.</p></div>
+    <div><h4 class="font-semibold mb-4 text-gray-800">Product</h4><ul class="space-y-2 text-gray-400 text-sm"><li><a href="#features" class="hover:text-gray-800">Features</a></li><li><a href="#pricing" class="hover:text-gray-800">Pricing</a></li><li><a href="#tech" class="hover:text-gray-800">Tech Stack</a></li><li><a href="https://github.com/mikewithoutthemechanics/whatsapp-crm" class="hover:text-gray-800">GitHub</a></li></ul></div>
+    <div><h4 class="font-semibold mb-4 text-gray-800">Links</h4><ul class="space-y-2 text-gray-400 text-sm"><li><a href="https://agentcy.co" class="hover:text-gray-800">Agentcy</a></li><li><a href="https://github.com/rmyndharis/OpenWA" class="hover:text-gray-800">OpenWA</a></li><li><a href="https://console.groq.com" class="hover:text-gray-800">Groq Console</a></li><li><a href="https://github.com/mikewithoutthemechanics/whatsapp-crm/blob/main/CLIENT-ONBOARDING.md" class="hover:text-gray-800">Client Guide</a></li></ul></div>
+    <div><h4 class="font-semibold mb-4 text-gray-800">Stack</h4><div class="space-y-2 text-gray-400 text-sm font-mono"><div>OpenWA <span class="text-green-600">&#9679;</span> v0.1.4</div><div>AI Engine <span class="text-green-600">&#9679;</span> Groq Free</div><div>Database <span class="text-green-600">&#9679;</span> Supabase/SQLite</div><div>Licence <span class="text-gray-500">&#9679;</span> MIT</div></div></div>
+  </div>
+  <div class="mt-12 text-center text-gray-300 text-xs">&#169; 2026 &#183; MIT licence &#183; <a href="https://github.com/mikewithoutthemechanics" class="text-gray-400 hover:text-gray-500">mikewithoutthemechanics</a> &#183; Powered by <a href="https://github.com/rmyndharis/OpenWA" class="text-gray-400 hover:text-gray-500">OpenWA</a></div>
+</footer>
+
+<!-- SCRIPTS -->
+<script>
+const lenis=new Lenis({duration:1.25,easing:t=>Math.min(1,1.001-Math.pow(2,-10*t)),smooth:true})
+function raf(t){lenis.raf(t);requestAnimationFrame(raf)};requestAnimationFrame(raf)
+gsap.registerPlugin(ScrollTrigger)
+
+(function(){
+  const tl=gsap.timeline({defaults:{ease:"power3.out",duration:1.1}})
+  tl.to("#h-eye",{opacity:1,y:0,duration:.8,delay:.4}).to("#h-title",{opacity:1,y:0,duration:1.1},"-=.5").to("#h-sub",{opacity:1,y:0,duration:.9},"-=.6").to("#h-ctas",{opacity:1,y:0,duration:.8},"-=.5")
+  setTimeout(revealALL,400);setTimeout(startChat,1000)
+})();
+
+function revealALL(){
+  document.querySelectorAll(".r0").forEach(el=>{gsap.fromTo(el,{opacity:0,y:50},{opacity:1,y:0,duration:.9,ease:"power3.out",scrollTrigger:{trigger:el,start:"top 85%",once:true}})})
+  document.querySelectorAll(".rL").forEach(el=>{gsap.fromTo(el,{opacity:0,x:-50},{opacity:1,x:0,duration:.9,ease:"power3.out",scrollTrigger:{trigger:el,start:"top 85%",once:true}})})
+  document.querySelectorAll(".rR").forEach(el=>{gsap.fromTo(el,{opacity:0,x:50},{opacity:1,x:0,duration:.9,ease:"power3.out",scrollTrigger:{trigger:el,start:"top 85%",once:true}})})
+  document.querySelectorAll(".rS").forEach(el=>{gsap.fromTo(el,{opacity:0,scale:.9},{opacity:1,scale:1,duration:.9,ease:"back.out(1.4)",scrollTrigger:{trigger:el,start:"top 85%",once:true}})})
+  gsap.fromTo(".fcard",{opacity:0,y:40},{opacity:1,y:0,stagger:.07,duration:.7,ease:"power3.out",scrollTrigger:{trigger:"#features",start:"top 80%",once:true}})
+}
+
+function countUp(el){const t=+el.dataset.t,dur=1800,step=t/(dur/16);let c=0;const rf=()=>{c=Math.min(c+step,t);el.textContent=Math.round(c);if(c<t)requestAnimationFrame(rf)};requestAnimationFrame(rf)}
+document.querySelectorAll(".cnt").forEach(el=>{ScrollTrigger.create({trigger:el,start:"top 90%",once:true,onEnter:()=>countUp(el)})})
+
+// live chat demo
+const chatMsgs=[
+  {s:"left",t:"Hi how much for a full house clean?",d:0},
+  {s:"right",t:"Hi 3-bedroom is R650 floors bathrooms and kitchen included. Want to book?",d:2500,a:true},
+  {s:"left",t:"Yes this Saturday if possible?",d:5000},
+  {s:"right",t:"Saturday 2pm works perfectly I have pencilled you in. Can I get your address?",d:7500,a:true},
+  {s:"left",t:"22 Oak Street Sandton",d:11500},
+  {s:"right",t:"All set Your booking is confirmed. I will send you a reminder on Saturday morning.",d:14000,a:true},
+]
+let timer=null
+function addMsg(m){
+  const d=document.createElement("div");d.className="flex "+(m.s==="right"?"justify-end":"justify-start")
+  d.innerHTML=`<div class="${m.s==="right"?"bg-green-500/85":"bg-white/[.07]"} rounded-2xl ${m.s==="right"?"rounded-tr-sm":"rounded-tl-sm"} px-4 py-2.5 max-w-[78%] ${m.s==="right"?"text-gray-50 shadow-md":"text-gray-500"} text-sm leading-relaxed">${m.t}<span class="text-[9px] block mt-1 ${m.s==="right"?"text-gray-600 text-right":"text-gray-500"}">09:42 ${m.a?" · AI reply":""}</span></div>`
+  document.getElementById("live-chat").appendChild(d)
+  document.getElementById("live-chat").scrollTop=document.getElementById("live-chat").scrollHeight
+}
+function startChat(){if(timer)return;chatMsgs.forEach(m=>{timer=setTimeout(()=>addMsg(m),m.d)})}
+function resetChat(){clearTimeout(timer);timer=null;document.getElementById("live-chat").innerHTML="";addMsg(chatMsgs[0]);setTimeout(startChat,1500)}
+
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener("click",e=>{const t=document.querySelector(a.getAttribute("href"));if(t){e.preventDefault();lenis.scrollTo(t,{offset:-80})}})})
+document.getElementById("mob-btn").addEventListener("click",()=>{document.getElementById("mob-menu").classList.toggle("hidden")})
+document.querySelectorAll("#mob-menu a").forEach(a=>a.addEventListener("click",()=>document.getElementById("mob-menu").classList.add("hidden")))
+lenis.on("scroll",ScrollTrigger.update);gsap.ticker.add(t=>lenis.raf(t*1000));gsap.ticker.lagSmoothing(0)
+
+;(function(){
+  const c=document.getElementById("hero-canvas");if(!c||typeof THREE==="undefined")return
+  const r=new THREE.WebGLRenderer({canvas:c,alpha:true,antialias:false})
+  r.setSize(window.innerWidth,window.innerHeight);r.setPixelRatio(Math.min(window.devicePixelRatio,1.5))
+  const s=new THREE.Scene(),p=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,.1,1000);p.position.z=50
+  const N=900,pos=new Float32Array(N*3);for(let i=0;i<N;i++){pos[i*3]=(Math.random()-.5)*120;pos[i*3+1]=(Math.random()-.5)*80;pos[i*3+2]=(Math.random()-.5)*80}
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pos,3))
+  const m=new THREE.PointsMaterial({color:0x25D366,size:.35,transparent:true,opacity:.55,sizeAttenuation:true});s.add(new THREE.Points(g,m))
+  let mx=0,my=0;document.addEventListener("mousemove",e=>{mx=(e.clientX/window.innerWidth-.5)*2;my=-(e.clientY/window.innerHeight-.5)*2})
+  window.addEventListener("resize",()=>{r.setSize(window.innerWidth,window.innerHeight);p.aspect=window.innerWidth/window.innerHeight;p.updateProjectionMatrix()})
+  let t0=performance.now()
+  function loop(){requestAnimationFrame(loop);const t=(performance.now()-t0)/1000;s.rotation.y=t*.04+mx*.05;s.rotation.x=my*.03;m.opacity=.4+.15*Math.sin(t*.8);r.render(s,p)}loop()
+})()
+</script>
+</body>
+</html>
+
+"""
