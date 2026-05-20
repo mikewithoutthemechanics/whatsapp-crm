@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: whatsapp-crm
+    runtime: docker
+    plan: starter
+    region: fra  # Frankfurt — closest to SA ( Cape / JHB uplinks fast to EU )
+    dockerfilePath: Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: SA_TIMEZONE
+        value: Africa/Johannesburg
+      # ── WhatsApp: set to openwa for self-hosted (no Meta / Twilio needed) ────
+      - key: WHATSAPP_PROVIDER
+        value: openwa
+      # ── OpenWA (Runs on your Railway instance or separate VPS) ─────────────────
+      - key: OPENWA_API_URL
+        sync: false   # set this in the Railway UI — e.g. https://your-openwa.railway.app
+      - key: OPENWA_API_KEY
+        sync: false   # set this in the Railway UI
+      - key: OPENWA_SESSION_ID
+        value: default
+      # ── AI (free tier) ────────────────────────────────────────────────────────
+      - key: AI_PROVIDER
+        value: auto
+      - key: GROQ_API_KEY
+        sync: false   # set this in the Railway UI — free at https://console.groq.com
+      # ── DB (optional — Railway Postgres add-on) ───────────────────────────────
+      # - key: DATABASE_URL
+      #   value: &reference: {{{ Rendered internally by Railway when you add Postgres }}} # pragma: allowlist secret

@@ -117,7 +117,7 @@ def print_welcome():
 ║               South African SMME WhatsApp CRM             ║
 ╠═══════════════════════════════════════════════════════════╣
 ║  Features:                                                ║
-║  • WhatsApp Business API integration (Meta / Twilio)     ║
+║  • WhatsApp via OpenWA (free, self-hosted) / Meta / Twilio       ║
 ║  • AI-powered auto-replies (Groq / OpenRouter — free)    ║
 ║  • Lead management & scoring                             ║
 ║  • Drip campaign engine                                   ║

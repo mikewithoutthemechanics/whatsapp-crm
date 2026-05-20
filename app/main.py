@@ -31,6 +31,14 @@ from app.api.router import (
     dashboard_router,
     webhook_router,
 )
+from app.auth import auth_router, admin_router
+from app.auth import auth_router, admin_router
+# admin_router includes:
+#   GET  /api/admin/health/detailed    — full production health report
+#   GET  /api/admin/webhooks/openwa/health  — OpenWA health probe
+#   GET  /api/admin/webhooks/openwa/resources/docs
+#   GET  /api/admin/sessions
+#   POST /api/auth/login               — JWT for admin routes
 
 logging.basicConfig(
     level=logging.INFO,
@@ -145,13 +153,16 @@ async def health_check():
         "status": "healthy",
         "version": "1.0.0",
         "environment": settings.ENVIRONMENT,
-        "whatsapp_connected": False,
+        "whatsapp_provider": settings.WHATSAPP_PROVIDER,
         "ai_provider": settings.AI_PROVIDER,
+        "ai_active": bool(settings.GROQ_API_KEY or settings.OPENROUTER_API_KEY),
         "timestamp": time.time(),
     }
 
 
 # ─── Include routers ─────────────────────────────────────────
+app.include_router(auth_router)
+app.include_router(admin_router)
 app.include_router(contacts_router)
 app.include_router(conversations_router)
 app.include_router(messages_router)
