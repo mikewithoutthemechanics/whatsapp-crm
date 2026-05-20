@@ -769,28 +769,26 @@ def openwa_webhook(request: Request):
     return {"status": "received"}
 
 
+from pathlib import Path
+
+# ─── Load landing page HTML at module level ──────────────────
+_LANDING_HTML: Optional[str] = None
+_ROOT_DIR = Path(__file__).resolve().parent.parent
+_LP_PATH = _ROOT_DIR / "public" / "index.html"
+if _LP_PATH.exists():
+    try:
+        _LANDING_HTML = _LP_PATH.read_text(encoding="utf-8")
+    except Exception:
+        pass
+
 # ─── Root ─────────────────────────────────────────────────────
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def root():
-    return {
-        "product": "WhatsApp CRM SA",
-        "version": "0.1.4",
-        "provider": _PROVIDER,
-        "ai": _AI_PROVIDER,
-        "status": "ok",
-        "endpoints": {
-            "health": "/health",
-            "auth": "/api/auth/login",
-            "admin": "/api/admin/health/detailed",
-            "contacts": "/api/contacts",
-            "conversations": "/api/conversations",
-            "messages": "/api/messages/send",
-            "ai": "/api/ai/stats",
-            "campaigns": "/api/campaigns",
-            "webhook": "/api/webhooks/openwa",
-        },
-    }
+    if _LANDING_HTML:
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(content=_LANDING_HTML)
+    return _LANDING_HTML or {"product": "WhatsApp CRM SA", "status": "ok"}
 
 
 # ─── Error handler ────────────────────────────────────────────
