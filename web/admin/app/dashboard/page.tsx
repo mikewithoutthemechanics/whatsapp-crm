@@ -6,7 +6,7 @@ import { getDashboardSummary } from '../../lib/api';
 import type { DashboardSummary } from '../../lib/api';
 
 const cardClass =
-  'rounded-xl p-5 border transition-all hover:border-white/12 animate-fade-in';
+  'rounded-xl p-5 border transition-all animate-fade-in';
 
 function StatCard({
   label,
@@ -25,14 +25,15 @@ function StatCard({
     <div
       className={cardClass}
       style={{
-        background: 'rgba(255,255,255,0.02)',
-        borderColor: 'rgba(255,255,255,0.06)',
+        background: '#FFFFFF',
+        borderColor: '#E0E0E0',
         animationDelay: `${delay}ms`,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       }}
     >
-      <p className="text-xs text-white/35 uppercase tracking-wider mb-2">{label}</p>
-      <p className="text-2xl font-bold text-white">{typeof value === 'number' ? value.toLocaleString() : value}</p>
-      {sub && <p className="text-xs mt-1" style={{ color: accent || '#10B981' }}>{sub}</p>}
+      <p className="text-xs uppercase tracking-wider mb-2" style={{ color: '#667781' }}>{label}</p>
+      <p className="text-2xl font-bold" style={{ color: '#111B21' }}>{typeof value === 'number' ? value.toLocaleString() : value}</p>
+      {sub && <p className="text-xs mt-1" style={{ color: accent || '#25D366' }}>{sub}</p>}
     </div>
   );
 }
@@ -62,8 +63,8 @@ export default function DashboardPage() {
   }, [router]);
 
   if (loading)
-    return <div className="flex items-center justify-center h-64 text-white/30">Loading…</div>;
-  if (error) return <div className="text-red-400 text-sm">{error}</div>;
+    return <div className="flex items-center justify-center h-64" style={{ color: '#667781' }}>Loading…</div>;
+  if (error) return <div className="text-red-600 text-sm">{error}</div>;
   if (!data) return null;
 
   const a = data.ai_requests_today;
@@ -71,8 +72,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-sm text-white/35 mt-0.5">Overview of your WhatsApp CRM instance</p>
+        <h1 className="text-2xl font-bold" style={{ color: '#111B21' }}>Dashboard</h1>
+        <p className="text-sm mt-0.5" style={{ color: '#667781' }}>Overview of your WhatsApp CRM instance</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -86,7 +87,7 @@ export default function DashboardPage() {
           label="AI Requests Today"
           value={a.groq + a.openrouter}
           sub={`Groq: ${a.groq}  ·  OpenRouter: ${a.openrouter}`}
-          accent="#6366F1"
+          accent="#128C7E"
           delay={180}
         />
         <StatCard label="Active Campaigns" value={data.campaigns_active} delay={210} />

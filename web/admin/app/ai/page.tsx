@@ -8,8 +8,8 @@ import { Loader2, Zap, Clock, Gauge, TrendingUp, Cpu } from 'lucide-react';
 
 const PROVIDER_COLOR: Record<string, string> = {
   auto: '#F59E0B',
-  groq: '#10B981',
-  openrouter: '#6366F1',
+  groq: '#25D366',
+  openrouter: '#128C7E',
 };
 
 function Card({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
@@ -17,9 +17,10 @@ function Card({ children, delay = 0, className = '' }: { children: React.ReactNo
     <div
       className={`rounded-xl p-5 border animate-fade-in ${className}`.trim()}
       style={{
-        background: 'rgba(255,255,255,0.02)',
-        borderColor: 'rgba(255,255,255,0.06)',
+        background: '#FFFFFF',
+        borderColor: '#E0E0E0',
         animationDelay: `${delay}ms`,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       }}
     >
       {children}
@@ -49,12 +50,12 @@ export default function AIStatsPage() {
   }, [router]);
 
   if (loading)
-    return <div className="flex items-center justify-center h-64 text-white/30">Loading…</div>;
-  if (error) return <div className="text-red-400 text-sm">{error}</div>;
+    return <div className="flex items-center justify-center h-64" style={{ color: '#667781' }}>Loading…</div>;
+  if (error) return <div className="text-red-600 text-sm">{error}</div>;
   if (!stats) return null;
 
   const provider = stats.current_provider || stats.provider || '—';
-  const providerColor = PROVIDER_COLOR[provider] || '#6B7280';
+  const providerColor = PROVIDER_COLOR[provider] || '#667781';
   const groqUsed = stats.groq_requests || 0;
   const groqDayLimit = stats.groq_free_tier_daily || 14400;
   const groqRemaining = Math.max(0, groqDayLimit - groqUsed);
@@ -63,71 +64,71 @@ export default function AIStatsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-white">AI Stats</h1>
-        <p className="text-sm text-white/35 mt-0.5">Groq and OpenRouter usage overview</p>
+        <h1 className="text-2xl font-bold" style={{ color: '#111B21' }}>AI Stats</h1>
+        <p className="text-sm mt-0.5" style={{ color: '#667781' }}>Groq and OpenRouter usage overview</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Provider */}
         <Card delay={0}>
           <div className="flex items-center gap-2 mb-3">
-            <Cpu size={15} className="text-indigo-400" />
-            <p className="text-xs text-white/35 uppercase tracking-wider font-medium">Current Provider</p>
+            <Cpu size={15} style={{ color: '#128C7E' }} />
+            <p className="text-xs uppercase tracking-wider font-medium" style={{ color: '#667781' }}>Current Provider</p>
           </div>
           <p className="text-xl font-bold" style={{ color: providerColor }}>{provider}</p>
           {stats.current_provider && (
-            <p className="text-xs text-white/30 mt-1">{stats.provider !== stats.current_provider ? `(was ${stats.provider})` : 'Active now'}</p>
+            <p className="text-xs mt-1" style={{ color: '#667781' }}>{stats.provider !== stats.current_provider ? `(was ${stats.provider})` : 'Active now'}</p>
           )}
         </Card>
 
         {/* After Hours */}
         <Card delay={30}>
           <div className="flex items-center gap-2 mb-3">
-            <Clock size={15} className="text-amber-400" />
-            <p className="text-xs text-white/35 uppercase tracking-wider font-medium">After-Hours Mode</p>
+            <Clock size={15} style={{ color: '#F59E0B' }} />
+            <p className="text-xs uppercase tracking-wider font-medium" style={{ color: '#667781' }}>After-Hours Mode</p>
           </div>
-          <p className="text-xl font-bold" style={{ color: stats.after_hours ? '#F59E0B' : '#10B981' }}>
+          <p className="text-xl font-bold" style={{ color: stats.after_hours ? '#F59E0B' : '#25D366' }}>
             {stats.after_hours ? '🌙 Active' : '☀️ Inactive'}
           </p>
-          <p className="text-xs text-white/30 mt-1">{stats.after_hours ? 'AI handling out-of-hours messages' : 'Business hours — AI on standby'}</p>
+          <p className="text-xs mt-1" style={{ color: '#667781' }}>{stats.after_hours ? 'AI handling out-of-hours messages' : 'Business hours — AI on standby'}</p>
         </Card>
 
         {/* Groq Requests */}
         <Card delay={60}>
           <div className="flex items-center gap-2 mb-3">
-            <Zap size={15} className="text-emerald-400" />
-            <p className="text-xs text-white/35 uppercase tracking-wider font-medium">Groq Requests Today</p>
+            <Zap size={15} style={{ color: '#25D366' }} />
+            <p className="text-xs uppercase tracking-wider font-medium" style={{ color: '#667781' }}>Groq Requests Today</p>
           </div>
-          <p className="text-2xl font-bold text-white">{groqUsed.toLocaleString()}</p>
-          <p className="text-xs text-white/30 mt-1">of {groqDayLimit.toLocaleString()} /day free tier</p>
+          <p className="text-2xl font-bold" style={{ color: '#111B21' }}>{groqUsed.toLocaleString()}</p>
+          <p className="text-xs mt-1" style={{ color: '#667781' }}>of {groqDayLimit.toLocaleString()} /day free tier</p>
         </Card>
 
         {/* OpenRouter Requests */}
         <Card delay={90}>
           <div className="flex items-center gap-2 mb-3">
-            <TrendingUp size={15} className="text-indigo-400" />
-            <p className="text-xs text-white/35 uppercase tracking-wider font-medium">OpenRouter Requests</p>
+            <TrendingUp size={15} style={{ color: '#128C7E' }} />
+            <p className="text-xs uppercase tracking-wider font-medium" style={{ color: '#667781' }}>OpenRouter Requests</p>
           </div>
-          <p className="text-2xl font-bold text-white">{stats.openrouter_requests?.toLocaleString() ?? 0}</p>
-          <p className="text-xs text-white/30 mt-1">Today</p>
+          <p className="text-2xl font-bold" style={{ color: '#111B21' }}>{stats.openrouter_requests?.toLocaleString() ?? 0}</p>
+          <p className="text-xs mt-1" style={{ color: '#667781' }}>Today</p>
         </Card>
 
         {/* Free tier progress */}
         <Card delay={120} className="sm:col-span-2 lg:col-span-1">
           <div className="flex items-center gap-2 mb-3">
-            <Gauge size={15} className="text-teal-400" />
-            <p className="text-xs text-white/35 uppercase tracking-wider font-medium">Groq Tier Usage</p>
+            <Gauge size={15} style={{ color: '#128C7E' }} />
+            <p className="text-xs uppercase tracking-wider font-medium" style={{ color: '#667781' }}>Groq Tier Usage</p>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-2xl font-bold" style={{ color: groqPct > 80 ? '#EF4444' : groqPct > 50 ? '#F59E0B' : '#10B981' }}>{groqPct}%</p>
-            <p className="text-xs text-white/30">{groqRemaining.toLocaleString()} remaining</p>
+            <p className="text-2xl font-bold" style={{ color: groqPct > 80 ? '#EF4444' : groqPct > 50 ? '#F59E0B' : '#25D366' }}>{groqPct}%</p>
+            <p className="text-xs" style={{ color: '#667781' }}>{groqRemaining.toLocaleString()} remaining</p>
           </div>
-          <div className="mt-2 w-full h-2 rounded-full bg-white/[.06] overflow-hidden">
+          <div className="mt-2 w-full h-2 rounded-full overflow-hidden" style={{ background: '#F0F2F5' }}>
             <div
               className="h-full rounded-full transition-all"
               style={{
                 width: `${groqPct}%`,
-                background: groqPct > 80 ? '#EF4444' : groqPct > 50 ? '#F59E0B' : '#10B981',
+                background: groqPct > 80 ? '#EF4444' : groqPct > 50 ? '#F59E0B' : '#25D366',
               }}
             />
           </div>
@@ -137,18 +138,18 @@ export default function AIStatsPage() {
       {/* Top Intents */}
       {stats.top_intents && stats.top_intents.length > 0 && (
         <Card delay={180} className="sm:col-span-2 lg:col-span-3">
-          <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-            <Cpu size={14} className="text-indigo-400" /> Top Detected Intents
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: '#111B21' }}>
+            <Cpu size={14} style={{ color: '#128C7E' }} /> Top Detected Intents
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
             {stats.top_intents.map(({ intent, count }) => (
               <div
                 key={intent}
                 className="px-3 py-2 rounded-lg text-center text-xs"
-                style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.12)' }}
+                style={{ background: '#25D36610', border: '1px solid #25D36620' }}
               >
-                <p className="text-white/60">{intent}</p>
-                <p className="text-white font-bold mt-0.5">{count}</p>
+                <p style={{ color: '#667781' }}>{intent}</p>
+                <p className="font-bold mt-0.5" style={{ color: '#111B21' }}>{count}</p>
               </div>
             ))}
           </div>
@@ -156,7 +157,7 @@ export default function AIStatsPage() {
       )}
 
       {(!stats.top_intents || stats.top_intents.length === 0) && (
-        <p className="text-sm text-white/25 text-center py-4">No intent data yet.</p>
+        <p className="text-sm text-center py-4" style={{ color: '#667781' }}>No intent data yet.</p>
       )}
     </div>
   );

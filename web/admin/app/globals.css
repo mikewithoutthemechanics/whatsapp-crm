@@ -3,12 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --color-bg: #0B0B0F;
-  --color-primary: #6366F1;
-  --color-teal: #10B981;
+  --color-bg: #F0F2F5;
+  --color-primary: #25D366;
+  --color-primary-dark: #128C7E;
+  --color-teal: #075E54;
   --color-amber: #F59E0B;
-  --color-card: rgba(255, 255, 255, 0.02);
-  --color-border: rgba(255, 255, 255, 0.06);
+  --color-card: #FFFFFF;
+  --color-border: #E0E0E0;
+  --color-text: #111B21;
+  --color-text-secondary: #667781;
 }
 
 * {
@@ -19,7 +22,7 @@ html, body {
   margin: 0;
   padding: 0;
   background: var(--color-bg);
-  color: #E5E5E5;
+  color: var(--color-text);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   min-height: 100vh;
 }
@@ -31,8 +34,8 @@ html, body {
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
 
 /* Focus ring */
 :focus-visible {
@@ -55,13 +58,13 @@ html, body {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  background: rgba(17, 17, 22, 0.95);
+  background: #FFFFFF;
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
   padding: 0.75rem 1.25rem;
   font-size: 0.875rem;
-  color: #E5E5E5;
-  backdrop-filter: blur(12px);
+  color: var(--color-text);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   z-index: 9999;
   animation: fadeIn 0.25s ease-out;
 }
