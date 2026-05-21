@@ -2,17 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4F46E5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WACRM">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon.svg">
     <title>WhatsApp CRM SA — Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:40;display:none}
+      .sidebar-overlay.open{display:block}
+      aside{transition:transform .3s ease}
+      @media(max-width:767px){
+        aside{transform:translateX(-100%);position:fixed;inset:0;right:auto;z-index:50;width:260px}
+        aside.open{transform:translateX(0)}
+        .main-content{margin-left:0!important;padding-top:3.5rem;padding-bottom:5rem}
+      }
+    </style>
 </head>
 <body class="bg-gray-50">
 
+<!-- Mobile Header -->
+<div class="md:hidden fixed top-0 left-0 right-0 h-14 bg-indigo-700 text-white flex items-center justify-between px-4 z-30">
+    <div class="font-bold text-lg">🗨️ WhatsApp CRM SA</div>
+    <button id="menu-btn" class="text-2xl bg-transparent border-none cursor-pointer text-white" aria-label="Menu">☰</button>
+</div>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="overlay"></div>
+
 <!-- Sidebar -->
 <div class="flex h-screen">
-    <aside class="w-64 bg-indigo-700 text-white flex flex-col">
-        <div class="p-4 font-bold text-lg">🗨️ WhatsApp CRM SA</div>
+    <aside id="sidebar" class="w-64 bg-indigo-700 text-white flex flex-col">
+        <div class="p-4 font-bold text-lg hidden md:block">🗨️ WhatsApp CRM SA</div>
         <nav class="flex-1 p-4 space-y-2">
             <a href="#" class="block px-4 py-2 rounded hover:bg-indigo-600 transition">📊 Dashboard</a>
             <a href="#" class="block px-4 py-2 rounded hover:bg-indigo-600 transition">💬 Conversations</a>
@@ -27,7 +52,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto p-6">
+    <main class="main-content flex-1 overflow-y-auto p-4 md:p-6">
         <!-- Top Bar -->
         <header class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
@@ -200,6 +225,49 @@ async function testAI() {
 document.getElementById('ai-test-input').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') testAI();
 });
+
+// Mobile menu toggle
+const menuBtn = document.getElementById('menu-btn');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+function toggleMenu() {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+}
+menuBtn.addEventListener('click', toggleMenu);
+overlay.addEventListener('click', toggleMenu);
+document.querySelectorAll('#sidebar a').forEach(a => a.addEventListener('click', () => {
+    if (window.innerWidth < 768) toggleMenu();
+}));
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(console.error);
+}
 </script>
+
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex items-center justify-around z-30" style="padding-bottom:env(safe-area-inset-bottom)">
+    <a href="#" class="flex flex-col items-center text-xs text-gray-600 py-1">
+        <span class="text-lg">📊</span>
+        <span>Dashboard</span>
+    </a>
+    <a href="#" class="flex flex-col items-center text-xs text-gray-600 py-1">
+        <span class="text-lg">💬</span>
+        <span>Chats</span>
+    </a>
+    <a href="#" class="flex flex-col items-center text-xs text-gray-600 py-1">
+        <span class="text-lg">👥</span>
+        <span>Contacts</span>
+    </a>
+    <a href="#" class="flex flex-col items-center text-xs text-gray-600 py-1">
+        <span class="text-lg">📢</span>
+        <span>Campaigns</span>
+    </a>
+    <a href="#" class="flex flex-col items-center text-xs text-gray-600 py-1">
+        <span class="text-lg">🤖</span>
+        <span>AI</span>
+    </a>
+</nav>
 </body>
 </html>
