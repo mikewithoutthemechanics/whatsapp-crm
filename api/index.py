@@ -792,7 +792,7 @@ _LANDING_HTML = """<!DOCTYPE html>
     body{font-family:Inter,system-ui,sans-serif;background:#06080A;color:#F8FAFC;overflow-x:hidden;-webkit-font-smoothing:antialiased}
     #grain{position:fixed;inset:0;z-index:10000;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");background-size:200px;opacity:.4}
     .vignette{position:fixed;inset:0;z-index:9998;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 50%,rgba(6,8,10,.88) 100%)}
-    .r0{opacity:0;transform:translateY(40px)}.rL{opacity:0;transform:translateX(-40px)}.rR{opacity:0;transform:translateX(40px)}.rS{opacity:0;transform:scale(.92)}
+    .r{transition:opacity .5s,transform .5s}
     .headline{font-family:Playfair Display,Georgia,serif;font-weight:900;line-height:1.04;letter-spacing:-.03em}
     .eyebrow{font-weight:600;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase}
     .btnW{display:inline-flex;align-items:center;gap:.55rem;padding:1.05rem 2.75rem;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;font-weight:700;font-size:1rem;border-radius:999px;border:none;text-decoration:none;position:relative;overflow:hidden;box-shadow:0 4px 25px rgba(37,211,102,.35);transition:transform .3s,box-shadow .3s}
@@ -816,7 +816,8 @@ _LANDING_HTML = """<!DOCTYPE html>
     .cw{border-radius:.8rem;overflow:hidden}
     .ctb{display:flex;align-items:center;gap:.4rem;padding:.7rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);background:rgba(37,211,102,.05)}
     .dot{width:11px;height:11px;border-radius:50%}
-    pre{padding:1.2rem;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.06;line-height:1.75;overflow-x:auto;font-size:.82rem}
+    pre{padding:1.2rem;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.06);
+    line-height:1.75;overflow-x:auto;font-size:.82rem}
     code{color:rgba(255,255,255,.6);font-family:JetBrains Mono,monospace}
     .divider{height:1px;max-width:5rem;margin:0 auto}
     .fcard{transition:transform .4s,border-color .4s,box-shadow .4s}
@@ -870,7 +871,7 @@ _LANDING_HTML = """<!DOCTYPE html>
 </section>
 
 <!-- MARQUEE -->
-<div class="py-4 overflow-hidden border-y border-white/[.06] bg-gray-900/60/[.5] backdrop-blur-sm relative z-20">
+<div class="py-4 overflow-hidden border-y border-white/[.06] bg-gray-900/50 backdrop-blur-sm relative z-20">
   <div class="mq"><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span></div>
 </div>
 
@@ -1059,10 +1060,6 @@ gsap.registerPlugin(ScrollTrigger)
 })();
 
 function revealALL(){
-  document.querySelectorAll(".r0").forEach(el=>{gsap.fromTo(el,{opacity:0,y:50},{opacity:1,y:0,duration:.9,ease:"power3.out",scrollTrigger:{trigger:el,start:"top 85%",once:true}})})
-  document.querySelectorAll(".rL").forEach(el=>{gsap.fromTo(el,{opacity:0,x:-50},{opacity:1,x:0,duration:.9,ease:"power3.out",scrollTrigger:{trigger:el,start:"top 85%",once:true}})})
-  document.querySelectorAll(".rR").forEach(el=>{gsap.fromTo(el,{opacity:0,x:50},{opacity:1,x:0,duration:.9,ease:"power3.out",scrollTrigger:{trigger:el,start:"top 85%",once:true}})})
-  document.querySelectorAll(".rS").forEach(el=>{gsap.fromTo(el,{opacity:0,scale:.9},{opacity:1,scale:1,duration:.9,ease:"back.out(1.4)",scrollTrigger:{trigger:el,start:"top 85%",once:true}})})
   gsap.fromTo(".fcard",{opacity:0,y:40},{opacity:1,y:0,stagger:.07,duration:.7,ease:"power3.out",scrollTrigger:{trigger:"#features",start:"top 80%",once:true}})
 }
 

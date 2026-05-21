@@ -19,7 +19,7 @@
     body{font-family:Inter,system-ui,sans-serif;background:#06080A;color:#F8FAFC;overflow-x:hidden;-webkit-font-smoothing:antialiased}
     #grain{position:fixed;inset:0;z-index:10000;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");background-size:200px;opacity:.35}
     .vignette{position:fixed;inset:0;z-index:9998;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 50%,rgba(2,4,6,.92) 100%)}
-    .r0{opacity:0;transform:translateY(40px)}.rL{opacity:0;transform:translateX(-40px)}.rR{opacity:0;transform:translateX(40px)}.rS{opacity:0;transform:scale(.92)}
+    .r{transition:opacity .5s,transform .5s}
     .headline{font-family:Playfair Display,Georgia,serif;font-weight:900;line-height:1.04;letter-spacing:-.03em}
     .eyebrow{font-weight:600;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase}
     .btnW{display:inline-flex;align-items:center;gap:.55rem;padding:1.05rem 2.75rem;background:linear-gradient(135deg,#25D366,#128C7E);color:white;font-weight:700;font-size:1rem;border-radius:999px;border:none;text-decoration:none;position:relative;overflow:hidden;box-shadow:0 4px 25px rgba(37,211,102,.3);transition:transform .3s,box-shadow .3s}
@@ -97,7 +97,7 @@
 </section>
 
 <!-- MARQUEE -->
-<div class="py-4 overflow-hidden border-y border-gray-200/[.04] bg-gray-900/60/[.5] backdrop-blur-sm relative z-20">
+<div class="py-4 overflow-hidden border-y border-gray-200/[.04] bg-gray-900/50 backdrop-blur-sm relative z-20">
   <div class="mq"><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span><span class="mi">OPEN SOURCE &middot; SELF-HOSTED &middot; ZERO PER-MESSAGE FEES &middot; GROQ AI FREE &middot; SAST TIMEZONE &middot; ZAR READY &middot; MIT LICENCE</span></div>
 </div>
 
