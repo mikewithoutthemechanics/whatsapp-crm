@@ -13,12 +13,14 @@ import json
 import logging
 import os
 import time
+from pathlib import Path
 import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # ─── Logging ─────────────────────────────────────────────────
@@ -33,7 +35,26 @@ app = FastAPI(
     openapi_url="/.well-known/openapi.json",
 )
 
-# ─── Constants / In-Memory Store ─────────────────────────────
+# ─── Static Assets (Next.js build output) ───────────────────────
+# Serves /_next/static/* from public/_next/static so dashboard JS/CSS loads
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_STATIC_ROOT = os.path.join(_ROOT, "public")
+app.mount("/_next", StaticFiles(directory=_STATIC_ROOT, html=False, check_dir=False), name="_next_static")
+
+# ─── Root landing + asset handlers ──────────────────────────
+# Explicit handlers so /manifest.json / /sw.js / /icon.svg resolve at the edge.
+
+@app.get("/manifest.json", include_in_schema=False)
+def get_manifest() -> JSONResponse:
+    _f = os.path.join(_STATIC_ROOT, "manifest.json")
+    data = json.loads(Path(_f).read_text()) if os.path.exists(_f) else {}
+    return JSONResponse(data, media_type="application/json")
+
+@app.get("/sw.js", include_in_schema=False)
+def get_sw() -> JSONResponse:
+    _f = os.path.join(_STATIC_ROOT, "sw.js")
+    return JSONResponse(content=Path(_f).read_text() if os.path.exists(_f) else "", media_type="application/javascript")
+
 ADMIN_PASSWORD_HASH = os.getenv(
     "ADMIN_PASSWORD_HASH",
     "scrypt:32768:8:1$salt$hashed_changeme",   # placeholder — validate against env

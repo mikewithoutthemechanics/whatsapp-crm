@@ -9,6 +9,19 @@
     { "source": "/",                  "destination": "/api/index.py" },
     { "source": "/api/(.*)",          "destination": "/api/index.py" },
     { "source": "/health",            "destination": "/api/index.py" },
-    { "source": "/landing",           "destination": "/api/index.py" }
+    { "source": "/landing",           "destination": "/api/index.py" },
+    { "source": "/dashboard",         "destination": "/api/index.py" },
+    { "source": "/dashboard/(.*)",    "destination": "/api/index.py" },
+    { "source": "/contacts",          "destination": "/api/index.py" },
+    { "source": "/contacts/(.*)",     "destination": "/api/index.py" },
+    { "source": "/conversations",     "destination": "/api/index.py" },
+    { "source": "/conversations/(.*)","destination": "/api/index.py" },
+    { "source": "/campaigns",         "destination": "/api/index.py" },
+    { "source": "/campaigns/(.*)",    "destination": "/api/index.py" },
+    { "source": "/ai",                "destination": "/api/index.py" },
+    { "source": "/ai/(.*)",           "destination": "/api/index.py" },
+    { "source": "/login",             "destination": "/api/index.py" },
+    { "source": "/login/(.*)",        "destination": "/api/index.py" },
+    { "source": "/404/(.*)",          "destination": "/api/index.py" }
   ]
 }
