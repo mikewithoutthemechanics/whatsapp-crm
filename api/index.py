@@ -41,30 +41,41 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _STATIC_ROOT = os.path.join(_ROOT, "public")
 app.mount("/_next", StaticFiles(directory=_STATIC_ROOT, html=False, check_dir=False), name="_next_static")
 
-# ─── Next.js static assets mount ───────────────────────────
-# Serve /_next/static/* and /_next/css from public/_next/
-# Paths resolved relative to this file (api/index.py → ../public/_next)
-_APP_DIR = os.path.dirname(os.path.abspath(__file__))
-_PUB_DIR  = os.path.join(_APP_DIR, "..", "public")   # .../public
-app.mount(
-    "/_next",
-    StaticFiles(directory=os.path.normpath(_PUB_DIR), html=False, check_dir=False),
-    name="next_static",
-)
-
 # ─── Root landing + asset handlers ──────────────────────────
 # Explicit handlers so /manifest.json / /sw.js / /icon.svg resolve at the edge.
+# Multi-path search because Vercel extracts functions to /var/task/,
+# local runs from the repo root, and Docker/UVicorn may use /workspace/.
+
+def _find_static(rel: str) -> str | None:
+    """Return absolute path to a public/ asset or None if not found."""
+    _candidates = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "public", rel),
+        os.path.join("/var/task", "public", rel),
+        os.path.join(_ROOT, "public", rel),
+    ]
+    for _c in _candidates:
+        _n = os.path.normpath(_c)
+        if os.path.exists(_n):
+            return _n
+    return None
+
 
 @app.get("/manifest.json", include_in_schema=False)
 def get_manifest() -> JSONResponse:
-    _f = os.path.join(_STATIC_ROOT, "manifest.json")
-    data = json.loads(Path(_f).read_text()) if os.path.exists(_f) else {}
-    return JSONResponse(data, media_type="application/json")
+    _p = _find_static("manifest.json")
+    if _p:
+        with open(_p) as _f:
+            return JSONResponse(content=json.load(_f), media_type="application/json")
+    return JSONResponse(content={"name": "WhatsApp CRM SA"}, media_type="application/json")
+
 
 @app.get("/sw.js", include_in_schema=False)
 def get_sw() -> JSONResponse:
-    _f = os.path.join(_STATIC_ROOT, "sw.js")
-    return JSONResponse(content=Path(_f).read_text() if os.path.exists(_f) else "", media_type="application/javascript")
+    _p = _find_static("sw.js")
+    if _p:
+        with open(_p) as _f:
+            return JSONResponse(content=_f.read(), media_type="application/javascript")
+    return JSONResponse(content="// sw.js placeholder", media_type="application/javascript")
 
 ADMIN_PASSWORD_HASH = os.getenv(
     "ADMIN_PASSWORD_HASH",
