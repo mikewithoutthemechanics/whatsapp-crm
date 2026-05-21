@@ -1,53 +1,42 @@
-const CACHE_NAME = 'wacrm-admin-v1';
-const STATIC_ASSETS = [
+// Simple runtime caching + PWA service worker
+const CACHE_NAME = 'wa-crm-v1';
+const PRECACHE_URLS = [
   '/',
-  '/dashboard/',
-  '/conversations/',
-  '/contacts/',
-  '/campaigns/',
-  '/ai/',
-  '/login/',
+  '/dashboard',
+  '/contacts',
+  '/conversations',
+  '/campaigns',
+  '/login',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-
-  if (event.request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
-    );
-    return;
-  }
-
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return (
-        response ||
-        fetch(event.request).then((fetchResponse) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, fetchResponse.clone());
-            return fetchResponse;
-          });
-        })
-      );
-    })
+    caches.match(event.request)
+      .then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(resp => {
+          if (!resp || resp.status !== 200 || resp.type !== 'basic') return resp;
+          const clone = resp.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return resp;
+        }).catch(() => new Response('Offline / no network', { status: 503 }));
+      })
   );
 });

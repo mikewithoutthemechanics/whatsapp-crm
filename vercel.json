@@ -22,6 +22,9 @@
     { "source": "/ai/(.*)",           "destination": "/api/index.py" },
     { "source": "/login",             "destination": "/api/index.py" },
     { "source": "/login/(.*)",        "destination": "/api/index.py" },
-    { "source": "/404/(.*)",          "destination": "/api/index.py" }
+    { "source": "/manifest.json",     "destination": "/api/index.py" },
+    { "source": "/sw.js",             "destination": "/api/index.py" },
+    { "source": "/icon.svg",          "destination": "/api/index.py" },
+    { "source": "/_next/(.*)",        "destination": "/api/index.py" }
   ]
 }
