@@ -41,6 +41,17 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _STATIC_ROOT = os.path.join(_ROOT, "public")
 app.mount("/_next", StaticFiles(directory=_STATIC_ROOT, html=False, check_dir=False), name="_next_static")
 
+# ─── Next.js static assets mount ───────────────────────────
+# Serve /_next/static/* and /_next/css from public/_next/
+# Paths resolved relative to this file (api/index.py → ../public/_next)
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+_PUB_DIR  = os.path.join(_APP_DIR, "..", "public")   # .../public
+app.mount(
+    "/_next",
+    StaticFiles(directory=os.path.normpath(_PUB_DIR), html=False, check_dir=False),
+    name="next_static",
+)
+
 # ─── Root landing + asset handlers ──────────────────────────
 # Explicit handlers so /manifest.json / /sw.js / /icon.svg resolve at the edge.
 
