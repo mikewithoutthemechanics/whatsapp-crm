@@ -449,6 +449,98 @@ def login(body: LoginReq):
     return {"access_token": token, "token_type": "bearer", "expires_in": 86400}
 
 
+@app.get("/auth/callback")
+def auth_callback(request: Request):
+    """Supabase OAuth callback - exchanges code for session."""
+    code = request.query_params.get("code")
+    if not code:
+        raise HTTPException(400, "Missing authorization code")
+
+    supabase_url = os.getenv("SUPABASE_URL", "")
+    supabase_anon = os.getenv("SUPABASE_ANON_KEY", "")
+
+    if not supabase_url or not supabase_anon:
+        raise HTTPException(500, "Supabase not configured")
+
+    try:
+        import requests
+        token_resp = requests.post(
+            f"{supabase_url}/auth/v1/token?grant_type=pkce",
+            json={"code": code},
+            headers={
+                "apikey": supabase_anon,
+                "Content-Type": "application/json",
+            },
+        )
+        if token_resp.status_code != 200:
+            raise HTTPException(400, "Failed to exchange code")
+
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token", "")
+        refresh_token = token_data.get("refresh_token", "")
+
+        resp = JSONResponse({"authenticated": True, "access_token": access_token})
+        resp.set_cookie(
+            "wavi_auth_token",
+            access_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=86400,
+        )
+        resp.set_cookie(
+            "wavi_refresh_token",
+            refresh_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=86400 * 30,
+        )
+        return resp
+    except Exception as e:
+        raise HTTPException(500, f"OAuth error: {str(e)}")
+
+
+@app.get("/auth/session")
+def auth_session(request: Request):
+    """Return current auth session from cookies."""
+    token = request.cookies.get("wavi_auth_token") if hasattr(request, "cookies") else None
+    if not token:
+        return {"authenticated": False}
+
+    supabase_url = os.getenv("SUPABASE_URL", "")
+    supabase_anon = os.getenv("SUPABASE_ANON_KEY", "")
+
+    if not supabase_url or not supabase_anon:
+        return {"authenticated": False}
+
+    try:
+        import requests
+        user_resp = requests.get(
+            f"{supabase_url}/auth/v1/user",
+            headers={
+                "apikey": supabase_anon,
+                "Authorization": f"Bearer {token}",
+            },
+        )
+        if user_resp.status_code == 200:
+            user_data = user_resp.json()
+            return {"authenticated": True, "user": user_data}
+    except Exception:
+        pass
+
+    return {"authenticated": False}
+
+
+@app.post("/auth/logout")
+def auth_logout():
+    """Logout - clear auth cookies."""
+    resp = JSONResponse({"logged_out": True})
+    resp.delete_cookie("wavi_auth_token")
+    resp.delete_cookie("wavi_refresh_token")
+    return resp
+
+
 # ─── ADMIN (no auth guard on serverless; use NEXT_PUBLIC env to configure) ──
 
 @app.get("/api/admin/health/detailed")
