@@ -6,7 +6,6 @@
     { "src": "api/index.py", "use": "@vercel/python@6.42.0" }
   ],
   "rewrites": [
-    { "source": "/",                  "destination": "/api/index.py" },
     { "source": "/api/(.*)",          "destination": "/api/index.py" },
     { "source": "/health",            "destination": "/api/index.py" },
     { "source": "/landing",           "destination": "/api/index.py" },
