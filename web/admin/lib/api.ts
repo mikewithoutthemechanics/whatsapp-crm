@@ -14,6 +14,9 @@ export type DashboardSummary = {
   ai_requests_today: { groq: number; openrouter: number };
   campaigns_active: number;
   campaign_subscribers: number;
+  import_jobs_today?: number;
+  contacts_imported_today?: number;
+  messages_imported_today?: number;
 };
 export type Conversation = {
   id: string;
@@ -34,6 +37,7 @@ export type Contact = {
   city: string;
   lead_source: string;
   created_at: string;
+  industry?: string;
 };
 export type Campaign = {
   id: string;
@@ -45,25 +49,6 @@ export type Campaign = {
   delivered_count: number;
   replied_count: number;
   active_subscribers: number;
-};
-export type LeadsPipeline = {
-  pipeline: {
-    new: { count: number; contacts: unknown[] };
-    contacted: { count: number; contacts: unknown[] };
-    qualified: { count: number; contacts: unknown[] };
-    converted: { count: number; contacts: unknown[] };
-    inactive: { count: number; contacts: unknown[] };
-  };
-};
-export type AIStats = {
-  provider?: string;
-  current_provider?: string;
-  groq_requests?: number;
-  openrouter_requests?: number;
-  after_hours?: boolean;
-  groq_free_tier_remaining?: number;
-  groq_free_tier_daily?: number;
-  top_intents?: { intent: string; count: number }[];
 };
 
 // ─── Auth helper ─────────────────────────────────────────────────────────────
@@ -121,8 +106,8 @@ export async function getActiveConversations(
   );
 }
 
-export async function getLeadsPipeline(): Promise<LeadsPipeline> {
-  return api<LeadsPipeline>('/api/dashboard/leads/pipeline');
+export async function getLeadsPipeline() {
+  return api('/api/dashboard/leads/pipeline');
 }
 
 // ─── Contacts ────────────────────────────────────────────────────────────────
@@ -167,8 +152,8 @@ export async function quickReply(data: { reply_key: string; to: string }) {
 
 // ─── Campaigns ───────────────────────────────────────────────────────────────
 
-export async function getCampaigns(): Promise<Campaign[]> {
-  return api<Campaign[]>('/api/campaigns');
+export async function getCampaigns() {
+  return api('/api/campaigns');
 }
 
 export async function createCampaign(data: Record<string, unknown>) {
@@ -198,8 +183,8 @@ export async function broadcastCampaign(
 
 // ─── AI ──────────────────────────────────────────────────────────────────────
 
-export async function getAIStats(): Promise<AIStats> {
-  return api<AIStats>('/api/ai/stats');
+export async function getAIStats() {
+  return api('/api/ai/stats');
 }
 
 // ─── Admin ───────────────────────────────────────────────────────────────────
@@ -216,7 +201,206 @@ export async function getSessions() {
   return api('/api/admin/sessions');
 }
 
-// ─── Util ────────────────────────────────────────────────────────────────────
+// ─── Import ─────────────────────────────────────────────────────────────────────
+
+export type ImportSource = {
+  id: string;
+  name: string;
+  source_type: string;
+  provider: string;
+  is_active: boolean;
+  last_import_at?: string | null;
+  total_contacts_imported: number;
+  total_messages_imported: number;
+  created_at: string;
+};
+
+export type ImportJob = {
+  id: string;
+  job_type: string;
+  status: string;
+  started_at?: string | null;
+  finished_at?: string | null;
+  contacts_found: number;
+  contacts_created: number;
+  contacts_updated: number;
+  messages_imported: number;
+  conversations_created: number;
+  skipped_duplicates: number;
+  errors: unknown[];
+  warnings: unknown[];
+  summary?: string | null;
+  created_at: string;
+};
+
+export async function getImportSources(): Promise<{ data: ImportSource[] }> {
+  return api<{ data: ImportSource[] }>('/api/import/sources');
+}
+
+export async function createImportSource(data: Partial<ImportSource>) {
+  return api('/api/import/sources', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getImportJobs(
+  status?: string,
+  page = 1,
+  limit = 20,
+): Promise<{ data: ImportJob[]; pagination: Record<string, unknown> }> {
+  const qs = new URLSearchParams();
+  if (status) qs.set('status', status);
+  qs.set('page', String(page));
+  qs.set('limit', String(limit));
+  return api(`/api/import/jobs?${qs}`);
+}
+
+export async function runChatImport(data: Record<string, unknown>) {
+  return api('/api/import/chats/run', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function startImportJob(jobId: string) {
+  return api(`/api/import/chats/${jobId}/start`, { method: 'POST' });
+}
+
+export async function triggerContactImport(body: { business_id?: string; dry_run?: boolean }) {
+  return api('/api/import/contacts/import', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getImportHistory(
+  business_id?: string,
+  page = 1,
+  limit = 20,
+): Promise<{ data: ImportedChat[]; pagination: Record<string, unknown> }> {
+  const qs = new URLSearchParams();
+  if (business_id) qs.set('business_id', business_id);
+  qs.set('page', String(page));
+  qs.set('limit', String(limit));
+  return api(`/api/import/history?${qs}`);
+}
+
+// ─── Business (Theo Brand / Unit / Location) ──────────────────────────────────
+
+export type BusinessBrand = {
+  id: string;
+  name: string;
+  legal_name?: string;
+  tagline?: string;
+  industry?: string;
+  province?: string;
+  city?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  primary_color?: string;
+  currency?: string;
+  timezone?: string;
+  is_active: boolean;
+  units?: unknown[];
+  locations?: unknown[];
+};
+
+export type BusinessUnit = {
+  id: string;
+  brand_id: string;
+  name: string;
+  unit_type?: string;
+  manager_name?: string;
+  manager_email?: string;
+  is_active: boolean;
+};
+
+export type BusinessLocation = {
+  id: string;
+  brand_id: string;
+  unit_id?: string;
+  name: string;
+  location_type?: string;
+  address?: string;
+  city?: string;
+  province?: string;
+  phone?: string;
+  email?: string;
+  whatsapp_number?: string;
+  whatsapp_connected: boolean;
+  is_active: boolean;
+};
+
+export async function getBrands(activeOnly = true): Promise<{ data: BusinessBrand[] }> {
+  const qs = new URLSearchParams();
+  qs.set('active_only', String(activeOnly));
+  return api<{ data: BusinessBrand[] }>(`/api/business/brands?${qs}`);
+}
+
+export async function getBrand(id: string): Promise<BusinessBrand> {
+  return api<BusinessBrand>(`/api/business/brands/${id}`);
+}
+
+export async function createBrand(data: Partial<BusinessBrand>) {
+  return api('/api/business/brands', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateBrand(id: string, updates: Partial<BusinessBrand>) {
+  return api(`/api/business/brands/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  });
+}
+
+export async function getUnits(brandId: string): Promise<{ data: BusinessUnit[] }> {
+  return api<{ data: BusinessUnit[] }>(`/api/business/brands/${brandId}/units`);
+}
+
+export async function createUnit(brandId: string, data: Partial<BusinessUnit>) {
+  return api(`/api/business/brands/${brandId}/units`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getLocations(
+  brandId: string,
+  unitId?: string,
+): Promise<{ data: BusinessLocation[] }> {
+  const qs = new URLSearchParams();
+  if (unitId) qs.set('unit_id', unitId);
+  const suffix = qs.toString() ? `?${qs}` : '';
+  return api<{ data: BusinessLocation[] }>(`/api/business/brands/${brandId}/locations${suffix}`);
+}
+
+export async function createLocation(brandId: string, data: Partial<BusinessLocation>) {
+  return api(`/api/business/brands/${brandId}/locations`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function connectLocationWhatsapp(locationId: string, body: {
+  session_id: string;
+  phone_number: string;
+}) {
+  return api(`/api/business/locations/${locationId}/connect-whatsapp`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getPlatformSummary(): Promise<unknown> {
+  return api('/api/business/platform/summary');
+}
+
+
+// ─── Util ──────────────────────────────────────────────────────────────────────
 
 export function getAPIBASE(): string {
   return API_BASE;

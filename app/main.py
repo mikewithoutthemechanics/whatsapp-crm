@@ -18,6 +18,36 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# ─── Helpers defined early (before module-level db init) ─────
+def _wire_router_db(engine):
+    global db
+    db = engine
+    try:
+        from app.api import router as r
+        r.db = engine
+    except Exception:
+        pass
+
+
+def _auto_import_tick():
+    if not settings.AUTO_IMPORT_ENABLED:
+        return
+    try:
+        from app.services.import_service import WhatsAppChatImportService
+        svc = WhatsAppChatImportService(business_id="default", db=db, whatsapp=whatsapp)
+        job_info = svc.start_import_job(
+            import_type="delta",
+            chat_limit=settings.AUTO_IMPORT_CHAT_LIMIT,
+            message_limit=settings.AUTO_IMPORT_MSG_LIMIT,
+            dry_run=settings.AUTO_IMPORT_DRY_RUN,
+        )
+        job_id = job_info.get("job_id")
+        if job_id:
+            logger.info("Auto-import started: job_id=%s", job_id)
+    except Exception as exc:
+        logger.warning("auto_import_tick failed: %s", exc)
+
+
 from app.config import settings
 from app.services.ai_service import ai_engine
 from app.services.whatsapp_service import WhatsAppService
@@ -30,8 +60,9 @@ from app.api.router import (
     ai_router,
     dashboard_router,
     webhook_router,
+    import_router,
+    business_router,
 )
-from app.auth import auth_router, admin_router
 from app.auth import auth_router, admin_router
 # admin_router includes:
 #   GET  /api/admin/health/detailed    — full production health report
@@ -50,6 +81,7 @@ logger = logging.getLogger(__name__)
 # ─── Database connection ─────────────────────────────────────
 def init_database():
     """Initialize Supabase/PostgreSQL database connection."""
+    engine = None
     try:
         import supabase
         if "postgresql" in settings.DATABASE_URL or "supabase" in settings.DATABASE_URL:
@@ -60,18 +92,29 @@ def init_database():
                 settings.SUPABASE_SERVICE_KEY or ""
             )
             logger.info("Connected to Supabase database")
-            return client
+            engine = client
     except ImportError:
         logger.warning("supabase package not installed. Run: pip install supabase")
     except Exception as e:
         logger.warning("Database connection failed: %s. Using SQLite fallback.", e)
 
-    # SQLite fallback for local development
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-    from app.models import Base
-    engine = create_engine("sqlite:///./whatsapp_crm.db", echo=settings.DEBUG)
-    Base.metadata.create_all(engine)
+    if engine is None:
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        from app.models import Base
+        engine = create_engine("sqlite:///./whatsapp_crm.db", echo=settings.DEBUG)
+        Base.metadata.create_all(engine)
+        logger.info("Using SQLite database")
+
+    # Wire DB into routers and services lazily
+    _wire_router_db(engine)
+    campaign_engine.db = engine
+    try:
+        from app.api import router as r
+        r.db = engine
+    except Exception:
+        pass
+
     return engine
 
 
@@ -118,6 +161,13 @@ async def lifespan(app):
         scheduler.add_job(process_due_campaign_messages, "interval", minutes=5, id="campaigns")
         scheduler.add_job(reset_ai_metrics, "interval", minutes=1, id="ai_reset")
         scheduler.add_job(daily_status_report, "cron", hour=18, minute=0, timezone="Africa/Johannesburg", id="report")
+        if settings.AUTO_IMPORT_ENABLED:
+            scheduler.add_job(
+                _auto_import_tick,
+                "interval",
+                minutes=max(settings.AUTO_IMPORT_INTERVAL_MINS, 15),
+                id="auto_import",
+            )
         scheduler.start()
     except Exception as e:
         logger.warning("Background scheduler failed: %s", e)
@@ -170,6 +220,8 @@ app.include_router(campaigns_router)
 app.include_router(ai_router)
 app.include_router(dashboard_router)
 app.include_router(webhook_router)
+app.include_router(import_router)
+app.include_router(business_router)
 
 
 # ─── Error handlers ──────────────────────────────────────────
@@ -182,7 +234,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# ─── Run directly ────────────────────────────────────────────
+# Run directly ────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(

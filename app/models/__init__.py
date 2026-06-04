@@ -317,3 +317,181 @@ class AgentNote(Base):
     author_id = Column(UUID(as_uuid=True), ForeignKey("team_members.id"), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ─── Import / Auto-Import Models ─────────────────────────────────
+
+class ImportSource(Base):
+    __tablename__ = "import_sources"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False)
+    name = Column(String(200), nullable=False)
+    source_type = Column(String(30), nullable=False)
+    provider = Column(String(30), default="openwa")
+    config = Column(JSON, default=dict)
+    is_active = Column(Boolean, default=True)
+    last_import_at = Column(DateTime(timezone=True))
+    total_contacts_imported = Column(Integer, default=0)
+    total_messages_imported = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        Index("idx_import_sources_business", "business_id"),
+        Index("idx_import_sources_type", "source_type"),
+    )
+
+
+class ImportJob(Base):
+    __tablename__ = "import_jobs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False)
+    source_id = Column(UUID(as_uuid=True), ForeignKey("import_sources.id"))
+    job_type = Column(String(30), nullable=False)
+    status = Column(String(20), default="queued")
+    started_at = Column(DateTime(timezone=True))
+    finished_at = Column(DateTime(timezone=True))
+    contacts_found = Column(Integer, default=0)
+    contacts_created = Column(Integer, default=0)
+    contacts_updated = Column(Integer, default=0)
+    messages_imported = Column(Integer, default=0)
+    conversations_created = Column(Integer, default=0)
+    skipped_duplicates = Column(Integer, default=0)
+    errors = Column(JSON, default=list)
+    warnings = Column(JSON, default=list)
+    summary = Column(Text)
+    settings_snapshot = Column(JSON, default=dict)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        Index("idx_import_jobs_business", "business_id"),
+        Index("idx_import_jobs_status", "status"),
+        Index("idx_import_jobs_source", "source_id"),
+    )
+
+
+class ImportedChat(Base):
+    __tablename__ = "imported_chats"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False)
+    source_id = Column(UUID(as_uuid=True), ForeignKey("import_sources.id"))
+    job_id = Column(UUID(as_uuid=True), ForeignKey("import_jobs.id"))
+    contact_id = Column(UUID(as_uuid=True), ForeignKey("contacts.id"))
+    external_chat_id = Column(String(200))
+    external_contact_id = Column(String(200))
+    last_message_at = Column(DateTime(timezone=True))
+    last_message_preview = Column(Text)
+    unread_count = Column(Integer, default=0)
+    message_count = Column(Integer, default=0)
+    raw_meta = Column(JSON, default=dict)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        Index("idx_imported_chats_business", "business_id"),
+        Index("idx_imported_chats_contact", "contact_id"),
+        Index("idx_imported_chats_source", "source_id"),
+    )
+
+
+# ─── Theo Business Platform Models ───────────────────────────────
+
+class TheoBrand(Base):
+    __tablename__ = "theo_brands"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False)
+    name = Column(String(200), nullable=False)
+    legal_name = Column(String(300))
+    tagline = Column(String(500))
+    logo_url = Column(Text)
+    primary_color = Column(String(7), default="#25D366")
+    secondary_color = Column(String(7), default="#128C7E")
+    industry = Column(String(100))
+    province = Column(String(50))
+    city = Column(String(100))
+    address = Column(Text)
+    phone = Column(String(20))
+    email = Column(String(255))
+    website = Column(String(500))
+    vat_registered = Column(Boolean, default=False)
+    vat_number = Column(String(20))
+    reg_number = Column(String(50))
+    currency = Column(String(3), default="ZAR")
+    timezone = Column(String(50), default="Africa/Johannesburg")
+    business_hours = Column(JSON, default=dict)
+    settings = Column(JSON, default=dict)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    units = relationship("BusinessUnit", back_populates="brand")
+    locations = relationship("BusinessLocation", back_populates="brand")
+
+    __table_args__ = (
+        Index("idx_theo_brands_business", "business_id"),
+    )
+
+
+class BusinessUnit(Base):
+    __tablename__ = "business_units"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    brand_id = Column(UUID(as_uuid=True), ForeignKey("theo_brands.id"), nullable=False)
+    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False)
+    name = Column(String(200), nullable=False)
+    unit_type = Column(String(50))
+    description = Column(Text)
+    manager_name = Column(String(200))
+    manager_email = Column(String(255))
+    manager_phone = Column(String(20))
+    settings = Column(JSON, default=dict)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    brand = relationship("TheoBrand", back_populates="units")
+    locations = relationship("BusinessLocation", back_populates="unit")
+
+    __table_args__ = (
+        Index("idx_bu_brand", "brand_id"),
+        Index("idx_bu_business", "business_id"),
+    )
+
+
+class BusinessLocation(Base):
+    __tablename__ = "business_locations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    brand_id = Column(UUID(as_uuid=True), ForeignKey("theo_brands.id"), nullable=False)
+    unit_id = Column(UUID(as_uuid=True), ForeignKey("business_units.id"))
+    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False)
+    name = Column(String(200), nullable=False)
+    location_type = Column(String(50))
+    address = Column(Text)
+    city = Column(String(100))
+    province = Column(String(50))
+    postal_code = Column(String(10))
+    phone = Column(String(20))
+    email = Column(String(255))
+    whatsapp_number = Column(String(20))
+    whatsapp_connected = Column(Boolean, default=False)
+    whatsapp_session_id = Column(String(100))
+    latitude = Column(Float)
+    longitude = Column(Float)
+    settings = Column(JSON, default=dict)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    brand = relationship("TheoBrand", back_populates="locations")
+    unit = relationship("BusinessUnit", back_populates="locations")
+
+    __table_args__ = (
+        Index("idx_bl_brand", "brand_id"),
+        Index("idx_bl_unit", "unit_id"),
+        Index("idx_bl_business", "business_id"),
+        Index("idx_bl_whatsapp", "whatsapp_number"),
+    )

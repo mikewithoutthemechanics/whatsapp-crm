@@ -10,10 +10,12 @@ const HIDDEN_ROUTES = ['/login'];
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
+  { href: '/business', label: 'Business', icon: '🏢' },
   { href: '/conversations', label: 'Chats', icon: '💬' },
   { href: '/contacts', label: 'Contacts', icon: '👥' },
   { href: '/campaigns', label: 'Campaigns', icon: '📨' },
   { href: '/ai', label: 'AI Stats', icon: '🤖' },
+  { href: '/import', label: 'Imports', icon: '📥' },
 ];
 
 export default function Sidebar({ children }: { children: React.ReactNode }) {

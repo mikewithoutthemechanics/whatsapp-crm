@@ -87,6 +87,14 @@ class Settings:
     MESSAGE_DELAY_MIN:          float = float(os.getenv("MESSAGE_DELAY_MIN","1"))
     AUTO_REPLY_TYPING_DELAY:      int = int(os.getenv("AUTO_REPLY_TYPING_DELAY","2"))
 
+    # ─ Import / Auto-Import ─────────────────────────────────────
+    AUTO_IMPORT_ENABLED:        bool = os.getenv("AUTO_IMPORT_ENABLED",       "false").lower() == "true"
+    AUTO_IMPORT_INTERVAL_MINS:  int  = int(os.getenv("AUTO_IMPORT_INTERVAL_MINS", "120"))
+    AUTO_IMPORT_DRY_RUN:        bool = os.getenv("AUTO_IMPORT_DRY_RUN",        "false").lower() == "true"
+    AUTO_IMPORT_CHAT_LIMIT:     int  = int(os.getenv("AUTO_IMPORT_CHAT_LIMIT",    "50"))
+    AUTO_IMPORT_MSG_LIMIT:      int  = int(os.getenv("AUTO_IMPORT_MSG_LIMIT",     "30"))
+    AUTO_IMPORT_CONTACTS_ONLY:  bool = os.getenv("AUTO_IMPORT_CONTACTS_ONLY",  "false").lower() == "true"
+
     # ─ Computed ──────────────────────────────────────────────────
     @property
     def is_production(self) -> bool:
