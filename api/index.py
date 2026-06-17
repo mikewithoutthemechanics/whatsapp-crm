@@ -37,15 +37,16 @@ app = FastAPI(
 )
 
 # ─── Static Assets (Next.js build output) ───────────────────────
-# Serves /_next/static/* from public/_next/static so dashboard JS/CSS loads
+# Serves /_next/static/* from assets/_next/static so dashboard JS/CSS loads
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_STATIC_ROOT = os.path.join(_ROOT, "public")
+_STATIC_ROOT = os.path.join(_ROOT, "assets")
 app.mount("/_next", StaticFiles(directory=_STATIC_ROOT, html=False, check_dir=False), name="_next_static")
 # ─── JS chunk routes (removed — using StaticFiles mount) ───────
 # Previous inline b64 dict caused FUNCTION_INVOCATION_FAILED on Vercel.
-# Vercel bundles public/ alongside the function artifact.
+# Vercel's Python builder excludes public/ from the lambda artifact,
+# so the Next assets are mirrored into assets/ and served from there.
 # See vercel.json rewrites for routing: /_next/* → /api/index.py
-# But StaticFiles is mounted here so public/_next/static/* is served
+# But StaticFiles is mounted here so assets/_next/static/* is served
 # directly by the FastAPI runtime without hitting the @app.get handlers.
 
 
@@ -57,10 +58,11 @@ app.mount("/_next", StaticFiles(directory=_STATIC_ROOT, html=False, check_dir=Fa
 # local runs from the repo root, and Docker/UVicorn may use /workspace/.
 
 def _find_static(rel: str) -> str | None:
-    """Return absolute path to a public/ asset or None if not found."""
+    """Return absolute path to an assets/ public asset or None if not found."""
     _candidates = [
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "public", rel),
-        os.path.join("/var/task", "public", rel),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", rel),
+        os.path.join("/var/task", "assets", rel),
+        os.path.join(_ROOT, "assets", rel),
         os.path.join(_ROOT, "public", rel),
     ]
     for _c in _candidates:
