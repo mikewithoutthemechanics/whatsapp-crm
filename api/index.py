@@ -39,7 +39,12 @@ app = FastAPI(
 # ─── Static Assets (Next.js build output) ───────────────────────
 # Serves /_next/static/* from assets/_next/static so dashboard JS/CSS loads
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_STATIC_ROOT = os.path.join(_ROOT, "assets")
+_STATIC_CANDIDATES = [
+    os.path.join(_ROOT, "assets"),
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets"),
+    os.path.join("/var/task", "assets"),
+]
+_STATIC_ROOT = next((os.path.normpath(p) for p in _STATIC_CANDIDATES if os.path.isdir(p)), os.path.join(_ROOT, "assets"))
 app.mount("/_next", StaticFiles(directory=_STATIC_ROOT, html=False, check_dir=False), name="_next_static")
 # ─── JS chunk routes (removed — using StaticFiles mount) ───────
 # Previous inline b64 dict caused FUNCTION_INVOCATION_FAILED on Vercel.
