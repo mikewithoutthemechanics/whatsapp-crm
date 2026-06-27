@@ -13,8 +13,9 @@ from typing import Optional, Dict, List
 from enum import Enum
 
 import requests
+import logging
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.config import settings
 
 
@@ -134,8 +135,15 @@ class DripCampaignEngine:
 
     def _send_template_message(self, to_number: str, template: Dict, subscriber: Dict):
         """Send a template message via WhatsApp API."""
-        # Placeholder - integrate with WhatsAppService
-        pass
+        try:
+            from app.services.whatsapp_service import WhatsAppService
+            ws = WhatsAppService()
+            body = template.get("body", "")
+            ws.send_text(to_number, body)
+        except Exception as e:
+            logger = logging.getLogger(__name__)
+            logger.error("Failed to send campaign message to %s: %s", to_number, e)
+            raise
 
     def add_subscriber(self, campaign_id: str, contact_id: str,
                        initial_delay_hours: int = 0) -> Dict:
@@ -203,15 +211,22 @@ class DripCampaignEngine:
         if province_filter:
             query = query.eq("province", province_filter)
 
-        contacts = query.execute()
+        resp = query.execute()
+        contacts = resp.data or []
         sent = 0
         failed = 0
 
-        for contact in contacts.data:
+        from app.services.whatsapp_service import WhatsAppService
+        ws = WhatsAppService()
+
+        for contact in contacts:
             try:
-                # Use WhatsAppService to send
-                # whatsapp_service.send_text(contact["whatsapp_number"], message)
-                sent += 1
+                number = contact.get("whatsapp_number", "")
+                if number:
+                    ws.send_text(number, message)
+                    sent += 1
+                else:
+                    failed += 1
             except Exception:
                 failed += 1
             time.sleep(0.5)  # Rate limiting

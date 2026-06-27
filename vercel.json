@@ -1,40 +1,24 @@
 {
-  "buildCommand": "echo 'static web page / no build needed'",
-  "outputDirectory": "public",
-  "framework": null,
+  "version": 2,
   "builds": [
-    { "src": "api/index.py", "use": "@vercel/python@6.42.0" }
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
   ],
-  "rewrites": [
-    { "source": "/api/(.*)",          "destination": "/api/index.py" },
-    { "source": "/health",            "destination": "/api/index.py" },
-    { "source": "/landing",           "destination": "/api/index.py" },
-    { "source": "/dialog/(.*)",       "destination": "/api/index.py" },
-    { "source": "/dialog-window",     "destination": "/api/index.py" },
-    { "source": "/protocol/(.*)",     "destination": "/api/index.py" },
-    { "source": "/enc/(.*)",          "destination": "/api/index.py" },
-    { "source": "/dig/(.*)",          "destination": "/api/index.py" },
-    { "source": "/web/(.*)",          "destination": "/api/index.py" },
-    { "source": "/web",               "destination": "/api/index.py" },
-    { "source": "/account/(.*)",      "destination": "/api/index.py" },
-    { "source": "/functions/(.*)",    "destination": "/api/index.py" },
-    { "source": "/functions",         "destination": "/api/index.py" },
-    { "source": "/auth/(.*)",         "destination": "/api/index.py" },
-    { "source": "/dashboard",         "destination": "/api/index.py" },
-    { "source": "/dashboard/(.*)",    "destination": "/api/index.py" },
-    { "source": "/contacts",          "destination": "/api/index.py" },
-    { "source": "/contacts/(.*)",     "destination": "/api/index.py" },
-    { "source": "/conversations",     "destination": "/api/index.py" },
-    { "source": "/conversations/(.*)","destination": "/api/index.py" },
-    { "source": "/campaigns",         "destination": "/api/index.py" },
-    { "source": "/campaigns/(.*)",    "destination": "/api/index.py" },
-    { "source": "/ai",                "destination": "/api/index.py" },
-    { "source": "/ai/(.*)",           "destination": "/api/index.py" },
-    { "source": "/login",             "destination": "/api/index.py" },
-    { "source": "/login/(.*)",        "destination": "/api/index.py" },
-    { "source": "/manifest.json",     "destination": "/api/index.py" },
-    { "source": "/sw.js",             "destination": "/api/index.py" },
-    { "source": "/icon.svg",          "destination": "/api/index.py" },
-    { "source": "/_next/(.*)",        "destination": "/api/index.py" }
+  "routes": [
+    { "src": "/health", "dest": "/api/index.py" },
+    { "src": "/auth/(.*)", "dest": "/api/index.py" },
+    { "src": "/api/auth/(.*)", "dest": "/api/index.py" },
+    { "src": "/api/admin/(.*)", "dest": "/api/index.py" },
+    { "src": "/api/contacts/(.*)", "dest": "/api/index.py" },
+    { "src": "/api/conversations/(.*)", "dest": "/api/index.py" },
+    { "src": "/api/messages/(.*)", "dest": "/api/index.py" },
+    { "src": "/api/campaigns/(.*)", "dest": "/api/index.py" },
+    { "src": "/api/ai/(.*)", "dest": "/api/index.py" },
+    { "src": "/api/dashboard/(.*)", "dest": "/api/index.py" },
+    { "src": "/api/webhooks/(.*)", "dest": "/api/index.py" },
+    { "src": "/setup", "dest": "/api/index.py" },
+    { "src": "/(.*)", "dest": "/api/index.py" }
   ]
 }

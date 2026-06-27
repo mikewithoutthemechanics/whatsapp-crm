@@ -74,6 +74,8 @@ class Settings:
     PAYFAST_PASSPHRASE:      str = os.getenv("PAYFAST_PASSPHRASE",     "")
 
     # ─ Storage ───────────────────────────────────────────────────
+    SUPABASE_URL:            str = os.getenv("SUPABASE_URL",           "")
+    SUPABASE_ANON_KEY:       str = os.getenv("SUPABASE_ANON_KEY",      "")
     SUPABASE_STORAGE_URL:    str = os.getenv("SUPABASE_STORAGE_URL",   "")
     SUPABASE_SERVICE_KEY:    str = os.getenv("SUPABASE_SERVICE_KEY",   "")
 

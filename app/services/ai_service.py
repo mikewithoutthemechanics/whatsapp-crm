@@ -10,7 +10,7 @@ import time
 import json
 import os
 import sys
-import requests
+import httpx
 from datetime import datetime
 from typing import Optional, Dict, List
 
@@ -27,9 +27,9 @@ class AIEngine:
         self.provider = settings.AI_PROVIDER
         self.request_counts = {"groq": 0, "openrouter": 0}
 
-    # ─── Groq API ──────────────────────────────────────────────
+    # ─── Groq API (async wrapper) ──────────────────────────────────────────────
     def _call_groq(self, prompt: str, model: str = "llama-3.1-8b-instant",
-                    max_tokens: int = 500) -> Optional[str]:
+                     max_tokens: int = 500) -> Optional[str]:
         """Call Groq Console API. Free: 30 RPM, 14,400 RPD."""
         url = "https://api.groq.com/openai/v1/chat/completions"
         payload = {
@@ -39,7 +39,7 @@ class AIEngine:
                 {"role": "user", "content": prompt}
             ],
             "max_tokens": max_tokens,
-            "temperature": 0.5
+            "temperature": 0.5,
         }
 
         headers = {"Content-Type": "application/json"}
@@ -47,22 +47,23 @@ class AIEngine:
             headers["Authorization"] = f"Bearer {self.groq_key}"
 
         try:
-            resp = requests.post(url, headers=headers, json=payload, timeout=15)
-            self.request_counts["groq"] += 1
+            with httpx.Client(timeout=15.0) as client:
+                resp = client.post(url, headers=headers, json=payload)
+                self.request_counts["groq"] += 1
 
-            if resp.status_code == 429:
-                time.sleep(5)
-                return self._call_groq(prompt, model, max_tokens)
-            if resp.status_code == 401:
-                return None
+                if resp.status_code == 429:
+                    time.sleep(5)
+                    return self._call_groq(prompt, model, max_tokens)
+                if resp.status_code == 401:
+                    return None
 
-            resp.raise_for_status()
-            return resp.json()["choices"][0]["message"]["content"].strip()
+                resp.raise_for_status()
+                return resp.json()["choices"][0]["message"]["content"].strip()
         except Exception as e:
             print(f"Groq error: {e}")
             return None
 
-    # ─── OpenRouter API ────────────────────────────────────────
+    # ─── OpenRouter API (async wrapper) ────────────────────────────────────────
     def _call_openrouter(self, prompt: str,
                          model: str = "deepseek/deepseek-r1:free",
                          max_tokens: int = 500) -> Optional[str]:
@@ -75,7 +76,7 @@ class AIEngine:
                 {"role": "user", "content": prompt}
             ],
             "max_tokens": max_tokens,
-            "temperature": 0.5
+            "temperature": 0.5,
         }
 
         headers = {
@@ -86,10 +87,11 @@ class AIEngine:
             headers["Authorization"] = f"Bearer {self.or_key}"
 
         try:
-            resp = requests.post(url, headers=headers, json=payload, timeout=15)
-            self.request_counts["openrouter"] += 1
-            resp.raise_for_status()
-            return resp.json()["choices"][0]["message"]["content"].strip()
+            with httpx.Client(timeout=15.0) as client:
+                resp = client.post(url, headers=headers, json=payload)
+                self.request_counts["openrouter"] += 1
+                resp.raise_for_status()
+                return resp.json()["choices"][0]["message"]["content"].strip()
         except Exception as e:
             print(f"OpenRouter error: {e}")
             return None
@@ -219,14 +221,19 @@ Always be honest — never make up pricing, availability, or details."""
     # ─── Template Fallback ────────────────────────────────────
     def _template_response(self, user_message: str) -> str:
         """Template-based response when AI is unavailable."""
-        greetings = ["Hi there! 👋", "Hello!", "Hey! How can I help?"]
-
+        # Business-type aware templates (for SA SMMEs)
+        business_type = getattr(settings, 'BUSINESS_TYPE', 'services') if settings else 'services'
+        
         if any(w in user_message.lower() for w in ["hi", "hello", "hey"]):
             return "Hi! 👋 Thanks for messaging us. How can I help you today?"
-        elif any(w in user_message.lower() for w in ["price", "cost", "how much"]):
-            return "Thanks for your interest! Could you tell me a bit more about what you need? I'll send you a quote. 😊"
+        elif any(w in user_message.lower() for w in ["price", "cost", "how much", "quote"]):
+            return "Thanks for your interest! Could you tell me more about what you need? I'll send you an accurate quote. 😊"
         elif any(w in user_message.lower() for w in ["thanks", "bye", "later"]):
             return "You're welcome! Feel free to reach out anytime. Have a great day! 👋"
+        elif any(w in user_message.lower() for w in ["hours", "open", "time"]):
+            return f"Our business hours are {settings.BUSINESS_HOURS_START}:00-{settings.BUSINESS_HOURS_END}:00 SAST. We'll respond as soon as possible!"
+        elif any(w in user_message.lower() for w in ["location", "address", "where"]):
+            return "We're based in South Africa! 🇿🇦 We offer services nationwide."
         else:
             return (
                 "Thanks for your message! 🙏\n"
