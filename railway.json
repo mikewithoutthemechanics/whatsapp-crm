@@ -1,21 +1,20 @@
-{
-  "$schema": "https://railway.app/railway.schema.json",
-  "build": {
-    "builder": "DOCKERFILE",
-    "dockerfilePath": "Dockerfile",
-    "buildCommand": ""
-  },
-  "deploy": {
-    "startCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level info",
-    "healthcheckPath": "/health",
-    "healthcheckTimeout": 10,
-    "restartPolicyType": "on_failure",
-    "restartPolicyMaxRetries": 10,
-    "numReplicas": 1,
-    "resources": {
-      "cpu": "0.5",
-      "memoryMiB": 512,
-      "memoryMaxMiB": 1024
-    }
-  }
-}
+# WhatsApp CRM SA - Railway Deployment
+# Push this file to root, then click "Deploy on Railway" at:
+# https://railway.app/template/github/mikewithoutthemechanics/whatsapp-crm-sa
+
+services:
+  - name: wavi-crm
+    # Dockerfile.railway will be used
+    build:
+      dockerfile: Dockerfile.railway
+    healthcheck:
+      path: /health
+      interval: 30s
+    # Auto-configure these on first deploy
+    env:
+      ENVIRONMENT: production
+      DEBUG: "false"
+      WHATSAPP_PROVIDER: openwa
+      AI_PROVIDER: auto
+
+# For local testing: railway up

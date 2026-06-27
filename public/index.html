@@ -1,10 +1,10 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Wavi — The WhatsApp CRM for Modern Teams</title>
+<link rel="icon" href="/favicon.ico" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -1221,6 +1221,99 @@
     .marquee-item { font-size: 24px; }
     .float-card { display: none; }
   }
+
+  /* Auth Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%; max-width: 420px;
+    position: relative;
+    transform: translateY(20px) scale(0.98);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+  }
+  .modal-overlay.active .modal {
+    transform: translateY(0) scale(1);
+  }
+  .modal-close {
+    position: absolute; top: 16px; right: 20px;
+    background: none; border: none; color: var(--muted);
+    font-size: 24px; cursor: pointer; line-height: 1;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-tabs {
+    display: flex; gap: 8px; margin-bottom: 28px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px; padding: 4px;
+  }
+  .modal-tab {
+    flex: 1; padding: 10px 16px; border-radius: 10px;
+    border: none; background: transparent; color: var(--muted);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: all 0.2s;
+  }
+  .modal-tab.active {
+    background: rgba(37,211,102,0.15); color: var(--green);
+  }
+  .modal-form { display: flex; flex-direction: column; gap: 16px; }
+  .modal-form label {
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .modal-input {
+    padding: 12px 14px; border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); color: var(--text);
+    font-size: 14px; font-family: inherit;
+    outline: none; transition: border-color 0.2s;
+  }
+  .modal-input:focus { border-color: var(--green); }
+  .modal-input::placeholder { color: rgba(138,138,147,0.5); }
+  .modal-submit {
+    width: 100%; margin-top: 8px;
+    justify-content: center;
+  }
+  .auth-message {
+    margin-top: 16px; padding: 12px 16px; border-radius: 12px;
+    font-size: 13px; text-align: center; display: none;
+  }
+  .auth-message.success { background: rgba(37,211,102,0.1); color: var(--green); border: 1px solid rgba(37,211,102,0.3); display: block; }
+  .auth-message.error { background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.3); display: block; }
+  .auth-message.info { background: rgba(59,130,246,0.1); color: #3B82F6; border: 1px solid rgba(59,130,246,0.3); display: block; }
+  .user-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; background: rgba(37,211,102,0.1);
+    border: 1px solid rgba(37,211,102,0.3); border-radius: 100px;
+    font-size: 13px; font-weight: 500; color: var(--green);
+  }
+  .google-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 12px 14px; border-radius: 12px;
+    background: #fff; border: 1px solid var(--border); color: #1f1f1f;
+    font-size: 14px; font-weight: 600; font-family: inherit;
+    cursor: pointer; transition: background 0.2s, box-shadow 0.2s;
+  }
+  .google-btn:hover { background: #f8f9fa; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--muted); font-size: 12px; font-weight: 500;
+    margin: 4px 0;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
 </style>
 </head>
 <body>
@@ -1249,8 +1342,8 @@
     <li><a href="#testimonials">Customers</a></li>
   </ul>
   <div class="nav-actions">
-    <a href="#" class="btn btn-ghost">Sign in</a>
-    <a href="#" class="btn btn-primary">Start free →</a>
+    <a href="/login" class="btn btn-ghost">Sign in</a>
+    <button onclick="openAuthModal()" class="btn btn-primary">Start free →</button>
   </div>
 </nav>
 
@@ -1261,7 +1354,7 @@
       <div class="hero-text">
         <div class="hero-badge">
           <span class="hero-badge-dot"></span>
-          New • AI-powered auto replies
+          New • AI-powered Business in your Whatsapp
         </div>
         <h1>
           <span class="line">Where conversations</span>
@@ -1269,8 +1362,8 @@
         </h1>
         <p>Wavi is the WhatsApp-native CRM that turns every chat into pipeline. Automate, organize, and close — all from the inbox your team already lives in.</p>
         <div class="hero-cta">
-          <a href="#" class="btn btn-primary btn-large">Get started free <span>→</span></a>
-          <a href="#" class="btn btn-outline btn-large">Watch demo</a>
+          <button onclick="openAuthModal('getstarted')" class="btn btn-primary btn-large">Get started free <span>→</span></button>
+          <button onclick="document.getElementById('product').scrollIntoView({behavior:'smooth'})" class="btn btn-outline btn-large">Watch demo</button>
         </div>
         <div class="hero-stats">
           <div>
@@ -1703,7 +1796,7 @@
           <li><span class="check">✓</span> Basic pipeline</li>
           <li><span class="check">✓</span> Email support</li>
         </ul>
-        <a href="#" class="btn btn-outline" style="width:100%; justify-content:center;">Get started</a>
+        <button onclick="openAuthModal('getstarted')" class="btn btn-outline" style="width:100%; justify-content:center;">Get started</button>
       </div>
       <div class="price-card featured reveal">
         <div class="price-badge">Most popular</div>
@@ -1717,7 +1810,7 @@
           <li><span class="check">✓</span> Full pipeline & analytics</li>
           <li><span class="check">✓</span> Priority support</li>
         </ul>
-        <a href="#" class="btn btn-primary" style="width:100%; justify-content:center;">Start free trial →</a>
+        <button onclick="openAuthModal('getstarted')" class="btn btn-primary" style="width:100%; justify-content:center;">Start free trial →</button>
       </div>
       <div class="price-card reveal">
         <div class="price-name">Enterprise</div>
@@ -1730,7 +1823,7 @@
           <li><span class="check">✓</span> 99.99% SLA</li>
           <li><span class="check">✓</span> Custom integrations</li>
         </ul>
-        <a href="#" class="btn btn-outline" style="width:100%; justify-content:center;">Contact sales</a>
+        <button onclick="openAuthModal('getstarted')" class="btn btn-outline" style="width:100%; justify-content:center;">Contact sales</button>
       </div>
     </div>
   </div>
@@ -1743,8 +1836,8 @@
       <h2>Ready to turn WhatsApp<br/>into your <span style="font-family:'Instrument Serif',serif; font-style:italic; background:var(--gradient-2); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">growth engine</span>?</h2>
       <p>Join 12,000+ teams using Wavi to close more deals, faster. No credit card. Free forever for up to 500 conversations.</p>
       <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
-        <a href="#" class="btn btn-primary btn-large">Start free today →</a>
-        <a href="#" class="btn btn-outline btn-large">Talk to sales</a>
+        <button onclick="openAuthModal('getstarted')" class="btn btn-primary btn-large">Start free today →</button>
+        <button onclick="openAuthModal('getstarted')" class="btn btn-outline btn-large">Talk to sales</button>
       </div>
     </div>
   </div>
@@ -1816,9 +1909,209 @@
   </div>
 </footer>
 
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tabGetStarted" onclick="switchAuthTab('getstarted')">Get Started</button>
+      <button class="modal-tab" id="tabSignIn" onclick="switchAuthTab('signin')">Sign In</button>
+    </div>
+
+    <form id="getStartedForm" class="modal-form" onsubmit="handleGetStarted(event)">
+      <button type="button" onclick="handleGoogleSignIn()" class="google-btn">
+        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.616Z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.836.86-3.048.86-2.344 0-4.328-1.58-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.166.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.823.957 4.042l3.007-2.332Z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z"/></svg>
+        Continue with Google
+      </button>
+      <div class="divider"><span>or fill in below</span></div>
+      <label>
+        Full name
+        <input type="text" class="modal-input" id="gsName" placeholder="e.g. Sarah Chen" required>
+      </label>
+      <label>
+        WhatsApp number
+        <input type="tel" class="modal-input" id="gsPhone" placeholder="082 123 4567" required>
+      </label>
+      <label>
+        Email <span style="color:var(--muted);font-weight:400">(optional)</span>
+        <input type="email" class="modal-input" id="gsEmail" placeholder="sarah@company.com">
+      </label>
+      <label>
+        Business name <span style="color:var(--muted);font-weight:400">(optional)</span>
+        <input type="text" class="modal-input" id="gsBusiness" placeholder="Acme Co">
+      </label>
+      <button type="submit" class="btn btn-primary modal-submit">Create your free account &rarr;</button>
+    </form>
+
+    <form id="signInForm" class="modal-form" onsubmit="handleSignIn(event)" style="display:none;">
+      <button type="button" onclick="handleGoogleSignIn()" class="google-btn">
+        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.616Z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.836.86-3.048.86-2.344 0-4.328-1.58-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.166.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.823.957 4.042l3.007-2.332Z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z"/></svg>
+        Sign in with Google
+      </button>
+      <div class="divider"><span>or</span></div>
+      <label>
+        Admin password
+        <input type="password" class="modal-input" id="siPassword" placeholder="Enter your admin password" required>
+      </label>
+      <button type="submit" class="btn btn-primary modal-submit">Sign in &rarr;</button>
+      <p style="font-size:12px; color:var(--muted); text-align:center; margin-top:8px;">Requires ADMIN_PASSWORD from your backend .env</p>
+    </form>
+
+    <div id="authMessage" class="auth-message"></div>
+  </div>
+</div>
+
 <script>
   // Register GSAP
   gsap.registerPlugin(ScrollTrigger);
+
+  // ─── API Client ─────────────────────────────────────────────
+  const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:8000' : '';
+
+  async function apiFetch(path, options = {}) {
+    const url = API_BASE + path;
+    const defaults = {
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    };
+    const resp = await fetch(url, { ...defaults, ...options });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(data.detail || data.error || `HTTP ${resp.status}`);
+    return data;
+  }
+
+  function getToken() { return localStorage.getItem('wavi_token'); }
+  function setToken(t) { localStorage.setItem('wavi_token', t); }
+  function clearToken() { localStorage.removeItem('wavi_token'); }
+
+  function showAuthMessage(text, type = 'info') {
+    const el = document.getElementById('authMessage');
+    el.textContent = text;
+    el.className = 'auth-message ' + type;
+  }
+
+  function openAuthModal(tab = 'getstarted') {
+    const modal = document.getElementById('authModal');
+    modal.classList.add('active');
+    switchAuthTab(tab);
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeAuthModal() {
+    const modal = document.getElementById('authModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('getStartedForm').reset();
+    document.getElementById('signInForm').reset();
+    document.getElementById('authMessage').className = 'auth-message';
+  }
+
+  function switchAuthTab(tab) {
+    document.getElementById('tabGetStarted').classList.toggle('active', tab === 'getstarted');
+    document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
+    document.getElementById('getStartedForm').style.display = tab === 'getstarted' ? 'flex' : 'none';
+    document.getElementById('signInForm').style.display = tab === 'signin' ? 'flex' : 'none';
+    document.getElementById('authMessage').className = 'auth-message';
+  }
+
+  async function handleGetStarted(e) {
+    e.preventDefault();
+    const name = document.getElementById('gsName').value.trim();
+    const email = document.getElementById('gsEmail').value.trim();
+    const phone = document.getElementById('gsPhone').value.trim();
+    const business = document.getElementById('gsBusiness').value.trim();
+
+    showAuthMessage('Creating your account...', 'info');
+    try {
+      const contact = await apiFetch('/api/contacts/', {
+        method: 'POST',
+        body: JSON.stringify({
+          first_name: name.split(' ')[0],
+          last_name: name.split(' ').slice(1).join(' '),
+          display_name: name,
+          email: email,
+          whatsapp_number: phone,
+          lead_source: 'website_signup',
+          tags: ['signup', business ? 'business:' + business : ''],
+        }),
+      });
+      showAuthMessage('Welcome to Wavi! We will reach out on WhatsApp shortly.', 'success');
+      setTimeout(closeAuthModal, 2500);
+    } catch (err) {
+      showAuthMessage(err.message, 'error');
+    }
+  }
+
+  async function handleSignIn(e) {
+    e.preventDefault();
+    const password = document.getElementById('siPassword').value;
+    showAuthMessage('Signing in...', 'info');
+    try {
+      const data = await apiFetch('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ password }),
+      });
+      setToken(data.access_token);
+      showAuthMessage('Signed in successfully!', 'success');
+      updateNavAuth();
+      setTimeout(closeAuthModal, 1200);
+    } catch (err) {
+      showAuthMessage(err.message, 'error');
+    }
+  }
+
+  function handleGoogleSignIn() {
+    const redirectTo = encodeURIComponent(window.location.origin + '/auth/callback');
+    window.location.href = '/auth/google?redirect_to=' + redirectTo;
+  }
+
+  let currentUser = null;
+
+  async function checkSession() {
+    try {
+      const data = await apiFetch('/auth/session');
+      if (data.authenticated) {
+        currentUser = data.user;
+        return true;
+      }
+    } catch (e) {
+      // silent fail
+    }
+    return !!getToken();
+  }
+
+  function updateNavAuth() {
+    const actions = document.querySelector('.nav-actions');
+    if (!actions) return;
+    const token = getToken();
+    const isOAuth = !!currentUser;
+    if (token || isOAuth) {
+      const name = currentUser?.email?.split('@')[0] || 'Admin';
+      actions.innerHTML = `
+        <span class="user-pill">${name}</span>
+        <button onclick="handleLogout()" class="btn btn-ghost">Sign out</button>
+      `;
+    } else {
+      actions.innerHTML = `
+        <a href="#" onclick="openAuthModal('signin'); return false;" class="btn btn-ghost">Sign in</a>
+        <button onclick="openAuthModal('getstarted')" class="btn btn-primary">Start free &rarr;</button>
+      `;
+    }
+  }
+
+  async function handleLogout() {
+    try { await apiFetch('/auth/logout', { method: 'POST' }); } catch (e) {}
+    clearToken();
+    currentUser = null;
+    updateNavAuth();
+  }
+
+  document.getElementById('authModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('authModal')) closeAuthModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAuthModal(); });
+
+  // Check auth state on load
+  checkSession().then(updateNavAuth);
 
   // Cursor glow
   const cursor = document.getElementById('cursorGlow');

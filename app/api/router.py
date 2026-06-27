@@ -9,11 +9,15 @@ from typing import Optional, List
 from datetime import datetime, timedelta
 import json
 import os
+import re
+
+from pydantic import BaseModel, field_validator
 
 from app.models import Business, Contact, Conversation, Message, Campaign, Tag, MessageTemplate
 from app.services.whatsapp_service import WhatsAppService, WhatsAppServiceError
 from app.services.ai_service import AIEngine
 from app.services.campaign_service import DripCampaignEngine
+from app.config import settings
 
 # Initialize services
 whatsapp = WhatsAppService()
@@ -28,6 +32,56 @@ campaigns_router = APIRouter(prefix="/api/campaigns", tags=["campaigns"])
 ai_router = APIRouter(prefix="/api/ai", tags=["ai"])
 dashboard_router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 webhook_router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
+
+
+# ─── Pydantic Validation Models ────────────────────────────────────────
+
+class ContactCreate(BaseModel):
+    whatsapp_number: str
+    first_name: Optional[str] = ""
+    last_name: Optional[str] = ""
+    display_name: Optional[str] = ""
+    email: Optional[str] = ""
+    lead_status: str = "new"
+    lead_score: int = 0
+    lead_source: str = "whatsapp"
+    tags: List[str] = []
+    province: Optional[str] = ""
+    city: Optional[str] = ""
+
+    @field_validator("whatsapp_number")
+    @classmethod
+    def validate_whatsapp_number(cls, v):
+        cleaned = re.sub(r"[^\d]", "", v)
+        if len(cleaned) < 10 or len(cleaned) > 15:
+            raise ValueError("Invalid WhatsApp number format")
+        return cleaned
+
+    @field_validator("lead_score")
+    @classmethod
+    def validate_lead_score(cls, v):
+        if v < 0 or v > 100:
+            raise ValueError("Lead score must be between 0 and 100")
+        return v
+
+
+class MessageSend(BaseModel):
+    to: str
+    content: str
+    type: str = "text"
+
+    @field_validator("to")
+    @classmethod
+    def validate_to_number(cls, v):
+        cleaned = re.sub(r"[^\d]", "", v)
+        if len(cleaned) < 10 or len(cleaned) > 15:
+            raise ValueError("Invalid phone number format")
+        return cleaned
+
+
+class QuickReply(BaseModel):
+    reply_key: str
+    to: str
 
 
 # ─── Contacts Endpoints ──────────────────────────────────────
@@ -67,31 +121,21 @@ async def list_contacts(
 
 
 @contacts_router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_contact(contact_data: dict):
+async def create_contact(contact_data: ContactCreate):
     """Create a new contact."""
-    # Validate required fields
-    whatsapp_number = contact_data.get("whatsapp_number", "")
-    if not whatsapp_number:
-        raise HTTPException(400, "WhatsApp number is required")
-
-    # Normalize number
-    whatsapp_number = whatsapp_number.lstrip("+")
-    if whatsapp_number.startswith("0") and len(whatsapp_number) == 10:
-        whatsapp_number = "27" + whatsapp_number[1:]
-
     contact = {
         "id": str(os.urandom(16).hex()),
-        "whatsapp_number": whatsapp_number,
-        "first_name": contact_data.get("first_name", ""),
-        "last_name": contact_data.get("last_name", ""),
-        "display_name": contact_data.get("display_name", ""),
-        "email": contact_data.get("email", ""),
-        "lead_status": contact_data.get("lead_status", "new"),
-        "lead_score": contact_data.get("lead_score", 0),
-        "lead_source": contact_data.get("lead_source", "whatsapp"),
-        "tags": contact_data.get("tags", []),
-        "province": contact_data.get("province", ""),
-        "city": contact_data.get("city", ""),
+        "whatsapp_number": contact_data.whatsapp_number,
+        "first_name": contact_data.first_name,
+        "last_name": contact_data.last_name,
+        "display_name": contact_data.display_name,
+        "email": contact_data.email,
+        "lead_status": contact_data.lead_status,
+        "lead_score": contact_data.lead_score,
+        "lead_source": contact_data.lead_source,
+        "tags": contact_data.tags,
+        "province": contact_data.province,
+        "city": contact_data.city,
         "created_at": datetime.utcnow().isoformat(),
     }
 
@@ -382,11 +426,19 @@ async def lead_pipeline():
 
 # ─── Webhook Endpoints ───────────────────────────────────────
 
+class WebhookPayload(BaseModel):
+    event: Optional[str] = None
+    data: Optional[dict] = None
+    group: Optional[bool] = False
+
+    class Config:
+        extra = "allow"  # Allow unknown fields from OpenWA/Meta
+
 @webhook_router.post("/whatsapp")
 async def whatsapp_webhook(payload: dict):
     """Receive and process WhatsApp webhook events."""
     # Verify webhook signature (Meta)
-    result = whatsapp.process_webhook(payload)
+    result = whatsapp.process_webhook(payload.model_dump())
 
     if result.get("status") == "received":
         sender = result.get("sender", "")

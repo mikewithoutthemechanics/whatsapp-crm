@@ -9,12 +9,19 @@ import os, time, hmac, hashlib, jwt, logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict
 
-from fastapi import APIRouter, HTTPException, Depends, Header, status
+from fastapi import APIRouter, HTTPException, Depends, Header, status, Request
 from fastapi.responses import JSONResponse
 
-logger = logging.getLogger(__name__)
+try:
+    from slowapi import Limiter
+    from slowapi.util import get_remote_address
+    limiter = Limiter(key_func=get_remote_address)
+    HAS_RATE_LIMIT = True
+except ImportError:
+    limiter = None
+    HAS_RATE_LIMIT = False
 
-# ── JWT ──────────────────────────────────────────────────────────────
+logger = logging.getLogger(__name__)
 
 def _sign(payload: dict, secret: str, expires_hours: int = 24) -> str:
     exp = datetime.now(timezone.utc) + timedelta(hours=expires_hours)
@@ -44,7 +51,8 @@ auth_router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
 @auth_router.post("/login")
-def login(body: dict):
+@limiter.limit("5/minute")
+def login(request: Request, body: dict):
     """
     Login with admin password.
     Body: { "password": "..." }
@@ -189,7 +197,7 @@ def openwa_docs_alias():
 @admin_router.get("/summary")
 async def admin_summary():
     """Consolidated admin readout shared by OpenWA and the CRM."""
-    from app.api.router import dashboard_router
+    from app.api.router import dashboard_summary
     return JSONResponse(content=await dashboard_summary())
 
 

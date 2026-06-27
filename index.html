@@ -1,46 +1,2282 @@
-<!-- AUTH MODAL -->
-<div id="authModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px);">
-  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:#0A0A0F; border:1px solid rgba(255,255,255,0.1); border-radius:24px; padding:40px; width:90%; max-width:420px; box-shadow:0 40px 80px rgba(0,0,0,0.5);">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px;">
-      <h3 style="color:#fff; font-size:24px; font-weight:700; margin:0;">Sign in to Wavi</h3>
-      <button onclick="closeAuthModal()" style="background:none; border:none; color:#8A8A93; font-size:24px; cursor:pointer; padding:0; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">×</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wavi — The WhatsApp CRM for Modern Teams</title>
+<link rel="icon" href="/favicon.ico" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --green: #25D366;
+    --green-dark: #128C7E;
+    --green-glow: #00FF88;
+    --bg: #050507;
+    --bg-2: #0A0A0F;
+    --surface: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --text: #F5F5F7;
+    --muted: #8A8A93;
+    --gradient-1: linear-gradient(135deg, #25D366 0%, #128C7E 50%, #075E54 100%);
+    --gradient-2: linear-gradient(135deg, #00FF88 0%, #25D366 100%);
+    --gradient-text: linear-gradient(180deg, #FFFFFF 0%, #A0A0A8 100%);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--green); color: #000; }
+  
+  /* Cursor */
+  .cursor-glow {
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,211,102,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    transition: opacity 0.3s;
+  }
+  
+  /* Background Grid */
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 80px 80px;
+    z-index: 0;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  }
+  
+  .bg-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .orb-1 { width: 600px; height: 600px; background: #25D366; top: -200px; right: -200px; opacity: 0.15; }
+  .orb-2 { width: 500px; height: 500px; background: #128C7E; bottom: 20%; left: -200px; opacity: 0.12; }
+  .orb-3 { width: 700px; height: 700px; background: #00FF88; top: 60%; right: 10%; opacity: 0.08; }
+  
+  /* Container */
+  .container {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 2;
+  }
+  
+  /* Nav */
+  nav {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 1320px;
+    z-index: 100;
+    padding: 14px 24px;
+    background: rgba(10,10,15,0.6);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  nav.scrolled {
+    background: rgba(10,10,15,0.85);
+    border-color: rgba(37,211,102,0.2);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+  }
+  .logo-mark {
+    width: 32px;
+    height: 32px;
+    background: var(--gradient-1);
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 20px rgba(37,211,102,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  .logo-mark::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%);
+    animation: shine 3s infinite;
+  }
+  @keyframes shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+  }
+  .btn-ghost:hover { color: var(--green); }
+  .btn-primary {
+    background: var(--green);
+    color: #000;
+    box-shadow: 0 0 0 0 rgba(37,211,102,0.5);
+  }
+  .btn-primary:hover {
+    background: var(--green-glow);
+    box-shadow: 0 0 30px rgba(37,211,102,0.5);
+    transform: translateY(-2px);
+  }
+  .btn-large {
+    padding: 16px 32px;
+    font-size: 16px;
+    border-radius: 14px;
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover {
+    border-color: var(--green);
+    color: var(--green);
+  }
+  
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    padding: 160px 0 100px;
+    position: relative;
+    perspective: 2000px;
+    display: flex;
+    align-items: center;
+  }
+  .hero-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    width: 100%;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(37,211,102,0.1);
+    border: 1px solid rgba(37,211,102,0.3);
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--green);
+    margin-bottom: 32px;
+  }
+  .hero-badge-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+  .hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(48px, 6.5vw, 92px);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    margin-bottom: 28px;
+  }
+  .hero h1 .line {
+    display: block;
+    overflow: hidden;
+  }
+  .hero h1 .italic {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    background: var(--gradient-2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 19px;
+    line-height: 1.6;
+    color: var(--muted);
+    margin-bottom: 40px;
+    max-width: 520px;
+  }
+  .hero-cta {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 48px;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+  .stat-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  
+  /* Hero Visual - Phone */
+  .hero-visual {
+    position: relative;
+    height: 640px;
+    transform-style: preserve-3d;
+  }
+  .phone-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    height: 640px;
+    z-index: 3;
+  }
+  .phone {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(145deg, #1a1a1f 0%, #0a0a0f 100%);
+    border-radius: 44px;
+    padding: 12px;
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 
+      0 50px 100px rgba(0,0,0,0.8),
+      0 0 0 1px rgba(255,255,255,0.05),
+      inset 0 0 0 1px rgba(255,255,255,0.05),
+      0 0 80px rgba(37,211,102,0.2);
+    position: relative;
+    transform-style: preserve-3d;
+  }
+  .phone-notch {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 28px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 10;
+  }
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #ECE5DD 0%, #D9D2C5 100%);
+    border-radius: 32px;
+    overflow: hidden;
+    position: relative;
+  }
+  .wa-header {
+    background: var(--gradient-1);
+    padding: 50px 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .wa-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fff 0%, #ddd 100%);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    color: var(--green-dark);
+  }
+  .wa-name { font-size: 14px; font-weight: 600; color: #fff; }
+  .wa-status { font-size: 11px; color: rgba(255,255,255,0.85); }
+  .wa-chat {
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 460px;
+  }
+  .wa-msg {
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    position: relative;
+    animation: msgIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  .wa-msg.in {
+    background: #fff;
+    align-self: flex-start;
+    border-top-left-radius: 2px;
+  }
+  .wa-msg.out {
+    background: #DCF8C6;
+    align-self: flex-end;
+    border-top-right-radius: 2px;
+  }
+  .wa-msg .time {
+    font-size: 9px;
+    color: #888;
+    text-align: right;
+    margin-top: 2px;
+  }
+  .wa-msg.in { animation-delay: 0.2s; }
+  .wa-msg.out { animation-delay: 0.6s; }
+  .wa-msg.in:nth-child(3) { animation-delay: 1s; }
+  .wa-msg.out:nth-child(4) { animation-delay: 1.4s; }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .wa-input {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    background: #fff;
+    border-radius: 24px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .wa-mic {
+    width: 28px;
+    height: 28px;
+    background: var(--green);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 12px;
+  }
+  
+  /* Floating Cards */
+  .float-card {
+    position: absolute;
+    background: rgba(20,20,25,0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 20px;
+    z-index: 4;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .float-card-1 {
+    top: 8%;
+    left: -5%;
+    transform: rotate(-6deg);
+    animation: floatA 6s ease-in-out infinite;
+  }
+  .float-card-2 {
+    top: 35%;
+    right: -8%;
+    transform: rotate(4deg);
+    animation: floatB 7s ease-in-out infinite;
+  }
+  .float-card-3 {
+    bottom: 10%;
+    left: -2%;
+    transform: rotate(-3deg);
+    animation: floatA 8s ease-in-out infinite reverse;
+  }
+  @keyframes floatA {
+    0%, 100% { transform: rotate(-6deg) translateY(0); }
+    50% { transform: rotate(-6deg) translateY(-15px); }
+  }
+  @keyframes floatB {
+    0%, 100% { transform: rotate(4deg) translateY(0); }
+    50% { transform: rotate(4deg) translateY(-20px); }
+  }
+  .fc-row { display: flex; align-items: center; gap: 10px; }
+  .fc-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+  }
+  .fc-icon.green { background: rgba(37,211,102,0.15); color: var(--green); }
+  .fc-icon.blue { background: rgba(59,130,246,0.15); color: #3B82F6; }
+  .fc-icon.purple { background: rgba(168,85,247,0.15); color: #A855F7; }
+  .fc-title { font-size: 12px; font-weight: 600; }
+  .fc-sub { font-size: 11px; color: var(--muted); }
+  
+  /* Marquee */
+  .marquee {
+    padding: 60px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+  }
+  .marquee-label {
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+  .marquee-track {
+    display: flex;
+    gap: 80px;
+    animation: marquee 30s linear infinite;
+    width: max-content;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .marquee-item {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.15);
+    white-space: nowrap;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 80px;
+  }
+  .marquee-item::after {
+    content: '✦';
+    color: var(--green);
+    font-size: 18px;
+  }
+  
+  /* Section */
+  section { position: relative; z-index: 2; }
+  .section-header {
+    text-align: center;
+    max-width: 760px;
+    margin: 0 auto 80px;
+  }
+  .section-eyebrow {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+  }
+  .section-title .italic {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    background: var(--gradient-2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .section-sub {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  
+  /* Showcase */
+  .showcase {
+    padding: 140px 0;
+    position: relative;
+  }
+  .showcase-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 24px;
+  }
+  .showcase-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .showcase-card:hover {
+    border-color: rgba(37,211,102,0.3);
+    background: rgba(37,211,102,0.03);
+    transform: translateY(-4px);
+  }
+  .showcase-card.large {
+    grid-column: span 8;
+    min-height: 480px;
+  }
+  .showcase-card.small {
+    grid-column: span 4;
+    min-height: 480px;
+  }
+  .showcase-card.medium {
+    grid-column: span 6;
+    min-height: 380px;
+  }
+  .card-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(37,211,102,0.1);
+    border: 1px solid rgba(37,211,102,0.2);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .card-desc {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  
+  /* Dashboard Mockup */
+  .dash-mock {
+    background: #0A0A0F;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-top: 24px;
+  }
+  .dash-top {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .dash-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dash-dot.r { background: #FF5F57; }
+  .dash-dot.y { background: #FEBC2E; }
+  .dash-dot.g { background: #28C840; }
+  .dash-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 12px;
+    height: 220px;
+  }
+  .dash-sidebar {
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .dash-item {
+    height: 24px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .dash-item.active {
+    background: rgba(37,211,102,0.15);
+    color: var(--green);
+  }
+  .dash-main {
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .dash-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .mini-stat {
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    padding: 8px;
+  }
+  .mini-stat-num { font-size: 14px; font-weight: 700; color: var(--green); }
+  .mini-stat-label { font-size: 9px; color: var(--muted); margin-top: 2px; }
+  .dash-chart {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+  .chart-bars {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    height: 100%;
+    padding: 8px;
+  }
+  .chart-bar {
+    width: 14px;
+    background: var(--gradient-2);
+    border-radius: 4px 4px 0 0;
+    opacity: 0.8;
+  }
+  
+  /* Pipeline */
+  .pipeline-mock {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .pipe-col {
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .pipe-col-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .pipe-count {
+    background: var(--green);
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 10px;
+  }
+  .pipe-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 10px;
+    margin-bottom: 6px;
+    border-left: 2px solid var(--green);
+  }
+  .pipe-card-name { font-weight: 600; color: var(--text); }
+  .pipe-card-meta { color: var(--muted); font-size: 9px; margin-top: 2px; }
+  
+  /* Story */
+  .story {
+    padding: 140px 0;
+  }
+  .story-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    margin-bottom: 160px;
+  }
+  .story-block:nth-child(even) { direction: rtl; }
+  .story-block:nth-child(even) > * { direction: ltr; }
+  .story-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 120px;
+    font-style: italic;
+    color: var(--green);
+    line-height: 0.8;
+    margin-bottom: 20px;
+    opacity: 0.4;
+  }
+  .story-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+  }
+  .story-desc {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+  .story-bullets {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .story-bullets li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 15px;
+  }
+  .check {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    background: rgba(37,211,102,0.15);
+    border: 1px solid rgba(37,211,102,0.4);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: var(--green);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  
+  .story-visual {
+    background: linear-gradient(145deg, rgba(37,211,102,0.05) 0%, rgba(10,10,15,0.8) 100%);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px;
+    min-height: 480px;
+    position: relative;
+    overflow: hidden;
+  }
+  .story-visual::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(37,211,102,0.15) 0%, transparent 60%);
+  }
+  
+  /* Bubble visual */
+  .bubble-stack {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1;
+  }
+  .bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.4;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .bubble.bot {
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    align-self: flex-start;
+    border-top-left-radius: 4px;
+  }
+  .bubble.user {
+    background: var(--gradient-1);
+    color: #fff;
+    align-self: flex-end;
+    border-top-right-radius: 4px;
+  }
+  .bubble-label {
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  
+  /* Workflow */
+  .workflow {
+    padding: 140px 0;
+    position: relative;
+  }
+  .workflow-track {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 80px;
+  }
+  .workflow-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    position: relative;
+    transition: all 0.4s;
+  }
+  .workflow-step:hover {
+    border-color: rgba(37,211,102,0.4);
+    transform: translateY(-8px);
+  }
+  .workflow-step::after {
+    content: '→';
+    position: absolute;
+    right: -22px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--green);
+    font-size: 24px;
+    z-index: 2;
+  }
+  .workflow-step:last-child::after { display: none; }
+  .step-num {
+    width: 40px;
+    height: 40px;
+    background: var(--gradient-1);
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    color: #000;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    margin-bottom: 20px;
+  }
+  .step-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+  }
+  .step-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  
+  /* Stats */
+  .big-stats {
+    padding: 100px 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(37,211,102,0.03) 50%, transparent 100%);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+    text-align: center;
+  }
+  .big-stat-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(48px, 6vw, 80px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    background: var(--gradient-2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .big-stat-label {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 12px;
+  }
+  
+  /* Testimonials */
+  .testimonials {
+    padding: 140px 0;
+  }
+  .testi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .testi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    position: relative;
+    transition: all 0.4s;
+  }
+  .testi-card:hover {
+    border-color: rgba(37,211,102,0.3);
+    transform: translateY(-4px);
+  }
+  .testi-quote {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text);
+    margin-bottom: 24px;
+  }
+  .testi-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .testi-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--gradient-1);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    color: #000;
+  }
+  .testi-name { font-weight: 600; font-size: 14px; }
+  .testi-role { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .testi-stars {
+    color: #FFD700;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  
+  /* Pricing */
+  .pricing {
+    padding: 140px 0;
+  }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 80px;
+  }
+  .price-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 36px;
+    position: relative;
+    transition: all 0.4s;
+  }
+  .price-card.featured {
+    background: linear-gradient(180deg, rgba(37,211,102,0.08) 0%, rgba(10,10,15,0.6) 100%);
+    border-color: rgba(37,211,102,0.4);
+    transform: scale(1.04);
+    box-shadow: 0 0 60px rgba(37,211,102,0.15);
+  }
+  .price-card:hover {
+    transform: translateY(-8px);
+  }
+  .price-card.featured:hover { transform: translateY(-8px) scale(1.04); }
+  .price-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gradient-2);
+    color: #000;
+    padding: 4px 14px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .price-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .price-amount {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+  .price-amount .currency { font-size: 24px; vertical-align: top; opacity: 0.7; }
+  .price-amount .period { font-size: 16px; color: var(--muted); font-weight: 500; }
+  .price-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .price-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .price-features li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+  }
+  
+  /* CTA */
+  .cta {
+    padding: 140px 0;
+    position: relative;
+  }
+  .cta-box {
+    background: linear-gradient(135deg, rgba(37,211,102,0.1) 0%, rgba(18,140,126,0.05) 100%);
+    border: 1px solid rgba(37,211,102,0.3);
+    border-radius: 32px;
+    padding: 100px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-box::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -10%;
+    width: 120%;
+    height: 200%;
+    background: radial-gradient(ellipse at center, rgba(37,211,102,0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .cta-box h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(40px, 5.5vw, 72px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .cta-box p {
+    font-size: 18px;
+    color: var(--muted);
+    margin-bottom: 40px;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+  }
+  .cta-box .btn { position: relative; }
+  
+  /* Footer */
+  footer {
+    padding: 80px 0 40px;
+    border-top: 1px solid var(--border);
+    position: relative;
+    z-index: 2;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 60px;
+  }
+  .footer-brand p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-top: 16px;
+    max-width: 320px;
+  }
+  .footer-col h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 20px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .footer-col a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s;
+  }
+  .footer-col a:hover { color: var(--green); }
+  .footer-bottom {
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  
+  /* Reveal animations */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  
+  /* Mobile */
+  @media (max-width: 1024px) {
+    .hero-content { grid-template-columns: 1fr; }
+    .hero-visual { height: 500px; margin-top: 40px; }
+    .showcase-card.large, .showcase-card.small, .showcase-card.medium { grid-column: span 12; }
+    .story-block { grid-template-columns: 1fr; gap: 40px; }
+    .story-block:nth-child(even) { direction: ltr; }
+    .workflow-track { grid-template-columns: 1fr 1fr; }
+    .workflow-step::after { display: none; }
+    .testi-grid, .pricing-grid { grid-template-columns: 1fr; }
+    .price-card.featured { transform: scale(1); }
+    .price-card.featured:hover { transform: translateY(-8px); }
+    .stats-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
+    .cta-box { padding: 60px 30px; }
+  }
+  @media (max-width: 640px) {
+    .nav-links { display: none; }
+    .workflow-track { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; gap: 16px; }
+    .marquee-item { font-size: 24px; }
+    .float-card { display: none; }
+  }
+
+  /* Auth Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%; max-width: 420px;
+    position: relative;
+    transform: translateY(20px) scale(0.98);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+  }
+  .modal-overlay.active .modal {
+    transform: translateY(0) scale(1);
+  }
+  .modal-close {
+    position: absolute; top: 16px; right: 20px;
+    background: none; border: none; color: var(--muted);
+    font-size: 24px; cursor: pointer; line-height: 1;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-tabs {
+    display: flex; gap: 8px; margin-bottom: 28px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px; padding: 4px;
+  }
+  .modal-tab {
+    flex: 1; padding: 10px 16px; border-radius: 10px;
+    border: none; background: transparent; color: var(--muted);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: all 0.2s;
+  }
+  .modal-tab.active {
+    background: rgba(37,211,102,0.15); color: var(--green);
+  }
+  .modal-form { display: flex; flex-direction: column; gap: 16px; }
+  .modal-form label {
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .modal-input {
+    padding: 12px 14px; border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); color: var(--text);
+    font-size: 14px; font-family: inherit;
+    outline: none; transition: border-color 0.2s;
+  }
+  .modal-input:focus { border-color: var(--green); }
+  .modal-input::placeholder { color: rgba(138,138,147,0.5); }
+  .modal-submit {
+    width: 100%; margin-top: 8px;
+    justify-content: center;
+  }
+  .auth-message {
+    margin-top: 16px; padding: 12px 16px; border-radius: 12px;
+    font-size: 13px; text-align: center; display: none;
+  }
+  .auth-message.success { background: rgba(37,211,102,0.1); color: var(--green); border: 1px solid rgba(37,211,102,0.3); display: block; }
+  .auth-message.error { background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.3); display: block; }
+  .auth-message.info { background: rgba(59,130,246,0.1); color: #3B82F6; border: 1px solid rgba(59,130,246,0.3); display: block; }
+  .user-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; background: rgba(37,211,102,0.1);
+    border: 1px solid rgba(37,211,102,0.3); border-radius: 100px;
+    font-size: 13px; font-weight: 500; color: var(--green);
+  }
+  .google-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 12px 14px; border-radius: 12px;
+    background: #fff; border: 1px solid var(--border); color: #1f1f1f;
+    font-size: 14px; font-weight: 600; font-family: inherit;
+    cursor: pointer; transition: background 0.2s, box-shadow 0.2s;
+  }
+  .google-btn:hover { background: #f8f9fa; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--muted); font-size: 12px; font-weight: 500;
+    margin: 4px 0;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor-glow" id="cursorGlow"></div>
+<div class="bg-grid"></div>
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+<div class="bg-orb orb-3"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.39 5.06L2 22l5.06-1.39C8.42 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" fill="#000"/>
+      </svg>
     </div>
-    <p style="color:#8A8A93; font-size:14px; margin-bottom:24px; line-height:1.6;">Sign in with your Supabase account to access your WhatsApp CRM dashboard.</p>
-    <button onclick="signInWithSupabase()" style="width:100%; padding:14px 24px; background:linear-gradient(135deg, #25D366, #128C7E); color:#000; border:none; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer; transition:all 0.3s; display:flex; align-items:center; justify-content:center; gap:12px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg>
-      Continue with Supabase
-    </button>
-    <p style="color:#8A8A93; font-size:12px; text-align:center; margin-top:20px; line-height:1.5;">Secure authentication powered by Supabase<br/>No account? <a href="/login" style="color:#25D366; text-decoration:none;">Create one free</a></p>
+    Wavi
+  </div>
+  <ul class="nav-links">
+    <li><a href="#product">Product</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#workflow">Workflow</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#testimonials">Customers</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="/login" class="btn btn-ghost">Sign in</a>
+    <button onclick="openAuthModal()" class="btn btn-primary">Start free →</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          New • AI-powered Business in your Whatsapp
+        </div>
+        <h1>
+          <span class="line">Where conversations</span>
+          <span class="line">become <span class="italic">customers</span>.</span>
+        </h1>
+        <p>Wavi is the WhatsApp-native CRM that turns every chat into pipeline. Automate, organize, and close — all from the inbox your team already lives in.</p>
+        <div class="hero-cta">
+          <button onclick="openAuthModal('getstarted')" class="btn btn-primary btn-large">Get started free <span>→</span></button>
+          <button onclick="document.getElementById('product').scrollIntoView({behavior:'smooth'})" class="btn btn-outline btn-large">Watch demo</button>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="stat-num" data-count="12000">0</div>
+            <div class="stat-label">Active teams</div>
+          </div>
+          <div>
+            <div class="stat-num" data-count="240">0</div>
+            <div class="stat-label">M+ conversations</div>
+          </div>
+          <div>
+            <div class="stat-num" data-count="98">0</div>
+            <div class="stat-label">% retention</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual" id="heroVisual">
+        <div class="phone-wrapper">
+          <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <div class="wa-header">
+                <div class="wa-avatar">S</div>
+                <div>
+                  <div class="wa-name">Sarah Chen</div>
+                  <div class="wa-status">online</div>
+                </div>
+              </div>
+              <div class="wa-chat">
+                <div class="wa-msg in">Hi! I'm interested in your premium plan 👋</div>
+                <div class="wa-msg out">Hey Sarah! Welcome to Wavi ✨ Let me send you the details.</div>
+                <div class="wa-msg in">Perfect, what's the pricing?</div>
+                <div class="wa-msg out">We have 3 plans starting at $29/mo. Want a quick tour?</div>
+                <div class="wa-msg out" style="margin-top:4px;">📎 <u>wavi-pricing.pdf</u></div>
+              </div>
+              <div class="wa-input">
+                <span>Type a message</span>
+                <div class="wa-mic">🎤</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="float-card float-card-1">
+          <div class="fc-row">
+            <div class="fc-icon green">⚡</div>
+            <div>
+              <div class="fc-title">Auto-reply sent</div>
+              <div class="fc-sub">in 0.4 seconds</div>
+            </div>
+          </div>
+        </div>
+        <div class="float-card float-card-2">
+          <div class="fc-row">
+            <div class="fc-icon blue">📈</div>
+            <div>
+              <div class="fc-title">+127% reply rate</div>
+              <div class="fc-sub">this week</div>
+            </div>
+          </div>
+        </div>
+        <div class="float-card float-card-3">
+          <div class="fc-row">
+            <div class="fc-icon purple">✓</div>
+            <div>
+              <div class="fc-title">Deal closed · $4,200</div>
+              <div class="fc-sub">Sarah Chen · just now</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee">
+  <div class="marquee-label">Trusted by teams at</div>
+  <div class="marquee-track">
+    <div class="marquee-item">Stripe <span>✦</span> Notion <span>✦</span> Linear <span>✦</span> Vercel <span>✦</span> Figma <span>✦</span> Loom <span>✦</span> Framer <span>✦</span> Webflow</div>
+    <div class="marquee-item">Stripe <span>✦</span> Notion <span>✦</span> Linear <span>✦</span> Vercel <span>✦</span> Figma <span>✦</span> Loom <span>✦</span> Framer <span>✦</span> Webflow</div>
+  </div>
+</div>
+
+<!-- SHOWCASE -->
+<section class="showcase" id="product">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Product</span>
+      <h2 class="section-title">A CRM that feels like <span class="italic">home</span>.</h2>
+      <p class="section-sub">Built around the WhatsApp Business API with a unified inbox, pipeline, and AI copilot. No clunky tabs. No context switching.</p>
+    </div>
+    <div class="showcase-grid">
+      <div class="showcase-card large reveal">
+        <span class="card-tag">Inbox</span>
+        <h3 class="card-title">The unified inbox,<br/>reimagined from scratch.</h3>
+        <p class="card-desc">All WhatsApp numbers, team mentions, automations, and AI drafts — in one beautifully designed surface.</p>
+        <div class="dash-mock">
+          <div class="dash-top">
+            <div class="dash-dot r"></div>
+            <div class="dash-dot y"></div>
+            <div class="dash-dot g"></div>
+          </div>
+          <div class="dash-content">
+            <div class="dash-sidebar">
+              <div class="dash-item active">📥 All inboxes</div>
+              <div class="dash-item">⭐ Starred</div>
+              <div class="dash-item">⏰ Waiting</div>
+              <div class="dash-item">✓ Done</div>
+              <div class="dash-item">🤖 Automations</div>
+              <div class="dash-item">👥 Team</div>
+            </div>
+            <div class="dash-main">
+              <div class="dash-stats">
+                <div class="mini-stat">
+                  <div class="mini-stat-num">2,847</div>
+                  <div class="mini-stat-label">Open chats</div>
+                </div>
+                <div class="mini-stat">
+                  <div class="mini-stat-num">94%</div>
+                  <div class="mini-stat-label">Reply rate</div>
+                </div>
+                <div class="mini-stat">
+                  <div class="mini-stat-num">$48k</div>
+                  <div class="mini-stat-label">Pipeline</div>
+                </div>
+              </div>
+              <div class="dash-chart">
+                <div class="chart-bars">
+                  <div class="chart-bar" style="height: 40%"></div>
+                  <div class="chart-bar" style="height: 65%"></div>
+                  <div class="chart-bar" style="height: 50%"></div>
+                  <div class="chart-bar" style="height: 80%"></div>
+                  <div class="chart-bar" style="height: 60%"></div>
+                  <div class="chart-bar" style="height: 90%"></div>
+                  <div class="chart-bar" style="height: 75%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="showcase-card small reveal">
+        <span class="card-tag">Pipeline</span>
+        <h3 class="card-title">Deals in motion, beautifully tracked.</h3>
+        <p class="card-desc">Kanban-style pipeline that lives next to your chats.</p>
+        <div class="pipeline-mock">
+          <div class="pipe-col">
+            <div class="pipe-col-head"><span>New</span><span class="pipe-count">12</span></div>
+            <div class="pipe-card">
+              <div class="pipe-card-name">Acme Co</div>
+              <div class="pipe-card-meta">$2,400 · 2h ago</div>
+            </div>
+            <div class="pipe-card">
+              <div class="pipe-card-name">Lina M.</div>
+              <div class="pipe-card-meta">$890 · 5h ago</div>
+            </div>
+          </div>
+          <div class="pipe-col">
+            <div class="pipe-col-head"><span>Qualified</span><span class="pipe-count">8</span></div>
+            <div class="pipe-card" style="border-left-color:#3B82F6">
+              <div class="pipe-card-name">Northwind</div>
+              <div class="pipe-card-meta">$5,200 · 1d</div>
+            </div>
+            <div class="pipe-card" style="border-left-color:#3B82F6">
+              <div class="pipe-card-name">Globex</div>
+              <div class="pipe-card-meta">$3,100 · 2d</div>
+            </div>
+          </div>
+          <div class="pipe-col">
+            <div class="pipe-col-head"><span>Won 🎉</span><span class="pipe-count">24</span></div>
+            <div class="pipe-card" style="border-left-color:#FFD700">
+              <div class="pipe-card-name">Initech</div>
+              <div class="pipe-card-meta">$8,400 · today</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="showcase-card medium reveal">
+        <span class="card-tag">Analytics</span>
+        <h3 class="card-title">Insights that move the needle.</h3>
+        <p class="card-desc">Reply time, conversion rate, agent performance — all live, all in seconds.</p>
+        <div class="dash-mock" style="margin-top: 16px;">
+          <div class="dash-chart" style="height:180px">
+            <svg width="100%" height="100%" viewBox="0 0 400 180" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#25D366" stop-opacity="0.5"/>
+                  <stop offset="100%" stop-color="#25D366" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0,140 C50,120 80,80 130,90 C180,100 220,40 280,50 C330,60 370,20 400,30 L400,180 L0,180 Z" fill="url(#g1)"/>
+              <path d="M0,140 C50,120 80,80 130,90 C180,100 220,40 280,50 C330,60 370,20 400,30" stroke="#25D366" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="showcase-card medium reveal">
+        <span class="card-tag">Automations</span>
+        <h3 class="card-title">Set it. Forget it. Sell more.</h3>
+        <p class="card-desc">Visual workflows that handle greetings, FAQs, lead routing, and follow-ups — 24/7.</p>
+        <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+          <div style="padding:8px 14px; background:rgba(37,211,102,0.1); border:1px solid rgba(37,211,102,0.3); border-radius:8px; font-size:12px;">⚡ Trigger</div>
+          <div style="color:var(--muted); align-self:center;">→</div>
+          <div style="padding:8px 14px; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); border-radius:8px; font-size:12px;">🤖 AI reply</div>
+          <div style="color:var(--muted); align-self:center;">→</div>
+          <div style="padding:8px 14px; background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.3); border-radius:8px; font-size:12px;">🏷️ Tag lead</div>
+          <div style="color:var(--muted); align-self:center;">→</div>
+          <div style="padding:8px 14px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.3); border-radius:8px; font-size:12px;">📅 Schedule</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STORY -->
+<section class="story" id="features">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Features</span>
+      <h2 class="section-title">Built for teams who <span class="italic">close</span>.</h2>
+      <p class="section-sub">Three pillars. One inbox. Endless possibilities.</p>
+    </div>
+    
+    <div class="story-block reveal">
+      <div>
+        <div class="story-num">01</div>
+        <h3 class="story-title">AI that talks like a human, sells like a machine.</h3>
+        <p class="story-desc">Wavi AI reads context, intent, and history — then drafts replies that sound like your best rep on their best day.</p>
+        <ul class="story-bullets">
+          <li><span class="check">✓</span> Multi-language support across 90+ dialects</li>
+          <li><span class="check">✓</span> Learns your brand voice from past conversations</li>
+          <li><span class="check">✓</span> Detects buying intent and routes to humans</li>
+        </ul>
+      </div>
+      <div class="story-visual">
+        <div class="bubble-stack">
+          <div>
+            <div class="bubble-label">AI Copilot · Drafting</div>
+            <div class="bubble bot">Hey! Saw you checked out the Growth plan twice. Want a 15-min walkthrough this week?</div>
+          </div>
+          <div>
+            <div class="bubble-label">Customer</div>
+            <div class="bubble user">Yes please! Thursday works best.</div>
+          </div>
+          <div>
+            <div class="bubble-label">AI Copilot · Auto-booking</div>
+            <div class="bubble bot">Booked for Thursday 3pm ✨ Calendar invite sent. See you there!</div>
+          </div>
+          <div style="margin-top:auto; padding:12px 16px; background:rgba(37,211,102,0.1); border:1px solid rgba(37,211,102,0.3); border-radius:12px; font-size:12px; color:var(--green);">
+            ⚡ 4.2 hours saved · $1,800 in pipeline added
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="story-block reveal">
+      <div>
+        <div class="story-num">02</div>
+        <h3 class="story-title">Collaborate like you're in the same room.</h3>
+        <p class="story-desc">Mention teammates, assign chats, leave internal notes — all without the customer ever seeing the chaos behind the curtain.</p>
+        <ul class="story-bullets">
+          <li><span class="check">✓</span> Real-time presence indicators and typing signals</li>
+          <li><span class="check">✓</span> Smart routing based on language, skill, or load</li>
+          <li><span class="check">✓</span> Internal threads attached to every contact</li>
+        </ul>
+      </div>
+      <div class="story-visual">
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div style="padding:16px; background:rgba(255,255,255,0.04); border-radius:12px; border-left:3px solid #3B82F6;">
+            <div style="font-size:11px; color:#3B82F6; margin-bottom:6px; font-weight:600;">@MARCUS · INTERNAL NOTE</div>
+            <div style="font-size:13px; color:var(--text); line-height:1.5;">Customer asking about enterprise SSO. Routing to you — you handled the security doc last week.</div>
+          </div>
+          <div style="padding:16px; background:rgba(255,255,255,0.04); border-radius:12px; border-left:3px solid var(--green);">
+            <div style="font-size:11px; color:var(--green); margin-bottom:6px; font-weight:600;">@JAMIE · ASKING</div>
+            <div style="font-size:13px; color:var(--text); line-height:1.5;">Is this prospect qualified? I see they downloaded the whitepaper.</div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center; padding-top:8px;">
+            <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#3B82F6,#1E40AF); display:grid;place-items:center;font-weight:700;font-size:12px;">M</div>
+            <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#A855F7,#6B21A8); display:grid;place-items:center;font-weight:700;font-size:12px;">J</div>
+            <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#25D366,#128C7E); display:grid;place-items:center;font-weight:700;font-size:12px;">+3</div>
+            <div style="font-size:12px; color:var(--muted); margin-left:8px;">3 others on this thread</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="story-block reveal">
+      <div>
+        <div class="story-num">03</div>
+        <h3 class="story-title">Integrations that just work. Out of the box.</h3>
+        <p class="story-desc">Push contacts to HubSpot, sync deals to Salesforce, fire webhooks into your stack. Two-way sync, no code, no headaches.</p>
+        <ul class="story-bullets">
+          <li><span class="check">✓</span> Native integrations with 40+ tools</li>
+          <li><span class="check">✓</span> REST API and webhooks for custom workflows</li>
+          <li><span class="check">✓</span> Zapier, Make, and n8n support</li>
+        </ul>
+      </div>
+      <div class="story-visual">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
+          <div style="aspect-ratio:1; background:rgba(255,255,255,0.04); border-radius:12px; display:grid;place-items:center; font-size:20px; font-weight:700;">📊</div>
+          <div style="aspect-ratio:1; background:rgba(255,255,255,0.04); border-radius:12px; display:grid;place-items:center; font-size:20px; font-weight:700;">🛒</div>
+          <div style="aspect-ratio:1; background:rgba(37,211,102,0.15); border:1px solid rgba(37,211,102,0.4); border-radius:12px; display:grid;place-items:center; font-size:20px; font-weight:700; color:var(--green);">⚡</div>
+          <div style="aspect-ratio:1; background:rgba(255,255,255,0.04); border-radius:12px; display:grid;place-items:center; font-size:20px; font-weight:700;">📅</div>
+          <div style="aspect-ratio:1; background:rgba(255,255,255,0.04); border-radius:12px; display:grid;place-items:center; font-size:20px; font-weight:700;">💳</div>
+          <div style="aspect-ratio:1; background:rgba(255,255,255,0.04); border-radius:12px; display:grid;place-items:center; font-size:20px; font-weight:700;">📧</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORKFLOW -->
+<section class="workflow" id="workflow">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">How it works</span>
+      <h2 class="section-title">From ping to <span class="italic">pipeline</span> in minutes.</h2>
+      <p class="section-sub">Connect, capture, qualify, close. The whole loop runs on WhatsApp.</p>
+    </div>
+    <div class="workflow-track">
+      <div class="workflow-step reveal">
+        <div class="step-num">01</div>
+        <h3 class="step-title">Connect</h3>
+        <p class="step-desc">Scan a QR code. Your WhatsApp Business number is live in 60 seconds. No code, no downtime.</p>
+      </div>
+      <div class="workflow-step reveal">
+        <div class="step-num">02</div>
+        <h3 class="step-title">Capture</h3>
+        <p class="step-desc">Every message, contact, and click flows into a unified timeline with rich contact profiles.</p>
+      </div>
+      <div class="workflow-step reveal">
+        <div class="step-num">03</div>
+        <h3 class="step-title">Qualify</h3>
+        <p class="step-desc">AI scores leads, routes hot prospects, and books meetings on your team's calendar.</p>
+      </div>
+      <div class="workflow-step reveal">
+        <div class="step-num">04</div>
+        <h3 class="step-title">Close</h3>
+        <p class="step-desc">Track deals, automate follow-ups, and watch revenue move — all in real time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BIG STATS -->
+<section class="big-stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="reveal">
+        <div class="big-stat-num" data-count="240">0</div>
+        <div class="big-stat-label">Million conversations<br/>powered monthly</div>
+      </div>
+      <div class="reveal">
+        <div class="big-stat-num" data-count="12">0</div>
+        <div class="big-stat-label">Thousand+ teams<br/>building with Wavi</div>
+      </div>
+      <div class="reveal">
+        <div class="big-stat-num" data-count="3.4">0</div>
+        <div class="big-stat-label">× average reply rate<br/>vs. email</div>
+      </div>
+      <div class="reveal">
+        <div class="big-stat-num" data-count="98">0</div>
+        <div class="big-stat-label">Percent customer<br/>retention year over year</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials" id="testimonials">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Loved by teams</span>
+      <h2 class="section-title">What our customers <span class="italic">say</span>.</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"We replaced 4 different tools with Wavi. Our team is faster, our customers are happier, and we closed 38% more deals last quarter. It's not even close."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">JM</div>
+          <div>
+            <div class="testi-name">Jessica Martinez</div>
+            <div class="testi-role">Head of Sales · Northwind</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"The AI replies are shockingly good. It sounds like our brand, not like a robot. Our agents now spend 70% of their time on actual conversations, not typing."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">DK</div>
+          <div>
+            <div class="testi-name">David Kim</div>
+            <div class="testi-role">Founder · Globex</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"Setup took 10 minutes. We were live before lunch and had our first qualified lead by 2pm. The pipeline view alone is worth the subscription."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">SR</div>
+          <div>
+            <div class="testi-name">Sophie Rodriguez</div>
+            <div class="testi-role">COO · Initech</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Pricing</span>
+      <h2 class="section-title">Simple, transparent <span class="italic">pricing</span>.</h2>
+      <p class="section-sub">Start free. Upgrade when you're ready. Cancel anytime.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card reveal">
+        <div class="price-name">Starter</div>
+        <div class="price-amount"><span class="currency">$</span>0<span class="period">/mo</span></div>
+        <div class="price-desc">Perfect for solo founders and side projects.</div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> 1 WhatsApp number</li>
+          <li><span class="check">✓</span> 500 conversations / month</li>
+          <li><span class="check">✓</span> Basic pipeline</li>
+          <li><span class="check">✓</span> Email support</li>
+        </ul>
+        <button onclick="openAuthModal('getstarted')" class="btn btn-outline" style="width:100%; justify-content:center;">Get started</button>
+      </div>
+      <div class="price-card featured reveal">
+        <div class="price-badge">Most popular</div>
+        <div class="price-name">Growth</div>
+        <div class="price-amount"><span class="currency">$</span>49<span class="period">/mo</span></div>
+        <div class="price-desc">For teams ready to scale WhatsApp into revenue.</div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> 5 WhatsApp numbers</li>
+          <li><span class="check">✓</span> Unlimited conversations</li>
+          <li><span class="check">✓</span> AI copilot & automations</li>
+          <li><span class="check">✓</span> Full pipeline & analytics</li>
+          <li><span class="check">✓</span> Priority support</li>
+        </ul>
+        <button onclick="openAuthModal('getstarted')" class="btn btn-primary" style="width:100%; justify-content:center;">Start free trial →</button>
+      </div>
+      <div class="price-card reveal">
+        <div class="price-name">Enterprise</div>
+        <div class="price-amount">Custom</div>
+        <div class="price-desc">For organizations that need full control and SSO.</div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> Unlimited numbers</li>
+          <li><span class="check">✓</span> SSO & SCIM</li>
+          <li><span class="check">✓</span> Dedicated success manager</li>
+          <li><span class="check">✓</span> 99.99% SLA</li>
+          <li><span class="check">✓</span> Custom integrations</li>
+        </ul>
+        <button onclick="openAuthModal('getstarted')" class="btn btn-outline" style="width:100%; justify-content:center;">Contact sales</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="container">
+    <div class="cta-box reveal">
+      <h2>Ready to turn WhatsApp<br/>into your <span style="font-family:'Instrument Serif',serif; font-style:italic; background:var(--gradient-2); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">growth engine</span>?</h2>
+      <p>Join 12,000+ teams using Wavi to close more deals, faster. No credit card. Free forever for up to 500 conversations.</p>
+      <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+        <button onclick="openAuthModal('getstarted')" class="btn btn-primary btn-large">Start free today →</button>
+        <button onclick="openAuthModal('getstarted')" class="btn btn-outline btn-large">Talk to sales</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">
+          <div class="logo-mark">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.39 5.06L2 22l5.06-1.39C8.42 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" fill="#000"/>
+            </svg>
+          </div>
+          Wavi
+        </div>
+        <p>The WhatsApp-native CRM for modern revenue teams. Built in San Francisco, loved worldwide.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#">Inbox</a></li>
+          <li><a href="#">Pipeline</a></li>
+          <li><a href="#">AI Copilot</a></li>
+          <li><a href="#">Automations</a></li>
+          <li><a href="#">Analytics</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Customers</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#">Docs</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Changelog</a></li>
+          <li><a href="#">API</a></li>
+          <li><a href="#">Status</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+          <li><a href="#">Security</a></li>
+          <li><a href="#">DPA</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 Wavi Labs Inc. All rights reserved.</div>
+      <div style="display:flex; gap:24px;">
+        <a href="#" style="color:var(--muted); text-decoration:none;">Twitter</a>
+        <a href="#" style="color:var(--muted); text-decoration:none;">LinkedIn</a>
+        <a href="#" style="color:var(--muted); text-decoration:none;">YouTube</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tabGetStarted" onclick="switchAuthTab('getstarted')">Get Started</button>
+      <button class="modal-tab" id="tabSignIn" onclick="switchAuthTab('signin')">Sign In</button>
+    </div>
+
+    <form id="getStartedForm" class="modal-form" onsubmit="handleGetStarted(event)">
+      <button type="button" onclick="handleGoogleSignIn()" class="google-btn">
+        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.616Z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.836.86-3.048.86-2.344 0-4.328-1.58-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.166.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.823.957 4.042l3.007-2.332Z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z"/></svg>
+        Continue with Google
+      </button>
+      <div class="divider"><span>or fill in below</span></div>
+      <label>
+        Full name
+        <input type="text" class="modal-input" id="gsName" placeholder="e.g. Sarah Chen" required>
+      </label>
+      <label>
+        WhatsApp number
+        <input type="tel" class="modal-input" id="gsPhone" placeholder="082 123 4567" required>
+      </label>
+      <label>
+        Email <span style="color:var(--muted);font-weight:400">(optional)</span>
+        <input type="email" class="modal-input" id="gsEmail" placeholder="sarah@company.com">
+      </label>
+      <label>
+        Business name <span style="color:var(--muted);font-weight:400">(optional)</span>
+        <input type="text" class="modal-input" id="gsBusiness" placeholder="Acme Co">
+      </label>
+      <button type="submit" class="btn btn-primary modal-submit">Create your free account &rarr;</button>
+    </form>
+
+    <form id="signInForm" class="modal-form" onsubmit="handleSignIn(event)" style="display:none;">
+      <button type="button" onclick="handleGoogleSignIn()" class="google-btn">
+        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.616Z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.836.86-3.048.86-2.344 0-4.328-1.58-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.166.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.823.957 4.042l3.007-2.332Z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z"/></svg>
+        Sign in with Google
+      </button>
+      <div class="divider"><span>or</span></div>
+      <label>
+        Admin password
+        <input type="password" class="modal-input" id="siPassword" placeholder="Enter your admin password" required>
+      </label>
+      <button type="submit" class="btn btn-primary modal-submit">Sign in &rarr;</button>
+      <p style="font-size:12px; color:var(--muted); text-align:center; margin-top:8px;">Requires ADMIN_PASSWORD from your backend .env</p>
+    </form>
+
+    <div id="authMessage" class="auth-message"></div>
   </div>
 </div>
 
 <script>
-  function openAuthModal() {
-    document.getElementById('authModal').style.display = 'block';
+  // Register GSAP
+  gsap.registerPlugin(ScrollTrigger);
+
+  // ─── API Client ─────────────────────────────────────────────
+  const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:8000' : '';
+
+  async function apiFetch(path, options = {}) {
+    const url = API_BASE + path;
+    const defaults = {
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    };
+    const resp = await fetch(url, { ...defaults, ...options });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(data.detail || data.error || `HTTP ${resp.status}`);
+    return data;
+  }
+
+  function getToken() { return localStorage.getItem('wavi_token'); }
+  function setToken(t) { localStorage.setItem('wavi_token', t); }
+  function clearToken() { localStorage.removeItem('wavi_token'); }
+
+  function showAuthMessage(text, type = 'info') {
+    const el = document.getElementById('authMessage');
+    el.textContent = text;
+    el.className = 'auth-message ' + type;
+  }
+
+  function openAuthModal(tab = 'getstarted') {
+    const modal = document.getElementById('authModal');
+    modal.classList.add('active');
+    switchAuthTab(tab);
     document.body.style.overflow = 'hidden';
   }
+
   function closeAuthModal() {
-    document.getElementById('authModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
+    const modal = document.getElementById('authModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('getStartedForm').reset();
+    document.getElementById('signInForm').reset();
+    document.getElementById('authMessage').className = 'auth-message';
   }
-  async function signInWithSupabase() {
+
+  function switchAuthTab(tab) {
+    document.getElementById('tabGetStarted').classList.toggle('active', tab === 'getstarted');
+    document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
+    document.getElementById('getStartedForm').style.display = tab === 'getstarted' ? 'flex' : 'none';
+    document.getElementById('signInForm').style.display = tab === 'signin' ? 'flex' : 'none';
+    document.getElementById('authMessage').className = 'auth-message';
+  }
+
+  async function handleGetStarted(e) {
+    e.preventDefault();
+    const name = document.getElementById('gsName').value.trim();
+    const email = document.getElementById('gsEmail').value.trim();
+    const phone = document.getElementById('gsPhone').value.trim();
+    const business = document.getElementById('gsBusiness').value.trim();
+
+    showAuthMessage('Creating your account...', 'info');
     try {
-      // Redirect to Supabase OAuth
-      const supabaseUrl = window.SUPABSE_URL || 'https://your-project.supabase.co';
-      const redirectTo = `${window.location.origin}/auth/callback`;
-      window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
-    } catch (e) {
-      console.error('OAuth error:', e);
-      alert('Authentication unavailable. Please use /login instead.');
-      closeAuthModal();
+      const contact = await apiFetch('/api/contacts/', {
+        method: 'POST',
+        body: JSON.stringify({
+          first_name: name.split(' ')[0],
+          last_name: name.split(' ').slice(1).join(' '),
+          display_name: name,
+          email: email,
+          whatsapp_number: phone,
+          lead_source: 'website_signup',
+          tags: ['signup', business ? 'business:' + business : ''],
+        }),
+      });
+      showAuthMessage('Welcome to Wavi! We will reach out on WhatsApp shortly.', 'success');
+      setTimeout(closeAuthModal, 2500);
+    } catch (err) {
+      showAuthMessage(err.message, 'error');
     }
   }
-  // Close modal on backdrop click
-  document.getElementById('authModal').addEventListener('click', function(e) {
-    if (e.target === this) closeAuthModal();
+
+  async function handleSignIn(e) {
+    e.preventDefault();
+    const password = document.getElementById('siPassword').value;
+    showAuthMessage('Signing in...', 'info');
+    try {
+      const data = await apiFetch('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ password }),
+      });
+      setToken(data.access_token);
+      showAuthMessage('Signed in successfully!', 'success');
+      updateNavAuth();
+      setTimeout(closeAuthModal, 1200);
+    } catch (err) {
+      showAuthMessage(err.message, 'error');
+    }
+  }
+
+  function handleGoogleSignIn() {
+    const redirectTo = encodeURIComponent(window.location.origin + '/auth/callback');
+    window.location.href = '/auth/google?redirect_to=' + redirectTo;
+  }
+
+  let currentUser = null;
+
+  async function checkSession() {
+    try {
+      const data = await apiFetch('/auth/session');
+      if (data.authenticated) {
+        currentUser = data.user;
+        return true;
+      }
+    } catch (e) {
+      // silent fail
+    }
+    return !!getToken();
+  }
+
+  function updateNavAuth() {
+    const actions = document.querySelector('.nav-actions');
+    if (!actions) return;
+    const token = getToken();
+    const isOAuth = !!currentUser;
+    if (token || isOAuth) {
+      const name = currentUser?.email?.split('@')[0] || 'Admin';
+      actions.innerHTML = `
+        <span class="user-pill">${name}</span>
+        <button onclick="handleLogout()" class="btn btn-ghost">Sign out</button>
+      `;
+    } else {
+      actions.innerHTML = `
+        <a href="#" onclick="openAuthModal('signin'); return false;" class="btn btn-ghost">Sign in</a>
+        <button onclick="openAuthModal('getstarted')" class="btn btn-primary">Start free &rarr;</button>
+      `;
+    }
+  }
+
+  async function handleLogout() {
+    try { await apiFetch('/auth/logout', { method: 'POST' }); } catch (e) {}
+    clearToken();
+    currentUser = null;
+    updateNavAuth();
+  }
+
+  document.getElementById('authModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('authModal')) closeAuthModal();
   });
-  // Close on escape key
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeAuthModal();
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAuthModal(); });
+
+  // Check auth state on load
+  checkSession().then(updateNavAuth);
+
+  // Cursor glow
+  const cursor = document.getElementById('cursorGlow');
+  let cx = window.innerWidth/2, cy = window.innerHeight/2;
+  let tx = cx, ty = cy;
+  document.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; });
+  function loop(){
+    cx += (tx-cx)*0.12;
+    cy += (ty-cy)*0.12;
+    cursor.style.left = cx + 'px';
+    cursor.style.top = cy + 'px';
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  // Nav scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 30) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  });
+
+  // Hero entrance
+  gsap.from('.hero-badge', { y: 30, opacity: 0, duration: 0.8, delay: 0.1, ease: 'power3.out' });
+  gsap.from('.hero h1 .line', { y: 80, opacity: 0, duration: 1, stagger: 0.15, delay: 0.2, ease: 'power3.out' });
+  gsap.from('.hero p', { y: 30, opacity: 0, duration: 0.8, delay: 0.6, ease: 'power3.out' });
+  gsap.from('.hero-cta', { y: 30, opacity: 0, duration: 0.8, delay: 0.7, ease: 'power3.out' });
+  gsap.from('.hero-stats > div', { y: 30, opacity: 0, duration: 0.6, stagger: 0.1, delay: 0.9, ease: 'power3.out' });
+  gsap.from('.phone-wrapper', { y: 60, opacity: 0, scale: 0.9, duration: 1.2, delay: 0.3, ease: 'power3.out' });
+  gsap.from('.float-card', { y: 30, opacity: 0, scale: 0.8, duration: 0.8, stagger: 0.15, delay: 1, ease: 'back.out(1.4)' });
+
+  // Hero parallax on mouse move
+  const heroVisual = document.getElementById('heroVisual');
+  heroVisual.addEventListener('mousemove', e => {
+    const rect = heroVisual.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    gsap.to('.phone', { rotateY: x * 12, rotateX: -y * 8, duration: 0.6, ease: 'power2.out' });
+  });
+  heroVisual.addEventListener('mouseleave', () => {
+    gsap.to('.phone', { rotateY: 0, rotateX: 0, duration: 0.8, ease: 'power3.out' });
+  });
+
+  // Hero scroll parallax
+  gsap.to('.hero-visual', {
+    y: 100,
+    opacity: 0.3,
+    scrollTrigger: {
+      trigger: '.hero',
+      start: 'top top',
+      end: 'bottom top',
+      scrub: 1
+    }
+  });
+
+  // Reveal on scroll
+  gsap.utils.toArray('.reveal').forEach(el => {
+    gsap.fromTo(el,
+      { y: 60, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 85%',
+          toggleActions: 'play none none none'
+        }
+      }
+    );
+  });
+
+  // Section title parallax
+  gsap.utils.toArray('.section-title').forEach(el => {
+    gsap.fromTo(el,
+      { y: 40, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        scrollTrigger: { trigger: el, start: 'top 90%' }
+      }
+    );
+  });
+
+  // Workflow steps stagger
+  gsap.fromTo('.workflow-step',
+    { y: 80, opacity: 0 },
+    {
+      y: 0, opacity: 1, duration: 0.8, stagger: 0.15, ease: 'power3.out',
+      scrollTrigger: { trigger: '.workflow-track', start: 'top 80%' }
+    }
+  );
+
+  // Testimonials
+  gsap.fromTo('.testi-card',
+    { y: 60, opacity: 0 },
+    {
+      y: 0, opacity: 1, duration: 0.8, stagger: 0.15, ease: 'power3.out',
+      scrollTrigger: { trigger: '.testi-grid', start: 'top 80%' }
+    }
+  );
+
+  // Pricing
+  gsap.fromTo('.price-card',
+    { y: 60, opacity: 0 },
+    {
+      y: 0, opacity: 1, duration: 0.8, stagger: 0.15, ease: 'power3.out',
+      scrollTrigger: { trigger: '.pricing-grid', start: 'top 80%' }
+    }
+  );
+
+  // Stat counter animation
+  const counters = document.querySelectorAll('[data-count]');
+  counters.forEach(c => {
+    const target = parseFloat(c.getAttribute('data-count'));
+    const isFloat = target % 1 !== 0;
+    ScrollTrigger.create({
+      trigger: c,
+      start: 'top 85%',
+      onEnter: () => {
+        gsap.fromTo(c, { textContent: 0 }, {
+          textContent: target,
+          duration: 2.2,
+          ease: 'power2.out',
+          snap: { textContent: isFloat ? 0.1 : 1 },
+          onUpdate: function() {
+            const val = parseFloat(c.textContent);
+            if (target >= 1000) c.textContent = Math.floor(val).toLocaleString();
+            else if (isFloat) c.textContent = val.toFixed(1);
+            else c.textContent = Math.floor(val);
+          }
+        });
+      }
+    });
+  });
+
+  // Big stat parallax scale
+  gsap.utils.toArray('.big-stat-num').forEach(el => {
+    gsap.fromTo(el, { scale: 0.7, opacity: 0 }, {
+      scale: 1, opacity: 1, duration: 1, ease: 'back.out(1.4)',
+      scrollTrigger: { trigger: el, start: 'top 85%' }
+    });
+  });
+
+  // Story block visual 3D tilt
+  gsap.utils.toArray('.story-visual').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      const rect = el.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      gsap.to(el, { rotateY: x * 6, rotateX: -y * 6, duration: 0.4, ease: 'power2.out' });
+    });
+    el.addEventListener('mouseleave', () => {
+      gsap.to(el, { rotateY: 0, rotateX: 0, duration: 0.6, ease: 'power3.out' });
+    });
+  });
+
+  // CTA box glow on scroll
+  gsap.fromTo('.cta-box', { scale: 0.95, opacity: 0 }, {
+    scale: 1, opacity: 1, duration: 1, ease: 'power3.out',
+    scrollTrigger: { trigger: '.cta-box', start: 'top 80%' }
   });
 </script>
+
+</body>
+</html>

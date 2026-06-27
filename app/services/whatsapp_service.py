@@ -16,9 +16,8 @@ import hmac
 import hashlib
 import logging
 import base64
+import httpx
 from typing import Optional, Dict, Any
-
-import requests
 
 from app.config import settings
 
@@ -123,7 +122,7 @@ class OpenWAService(_BaseService):
         self.session   = settings.OPENWA_SESSION_ID          # named session in OpenWA
         self.hmac_key  = settings.OPENWA_HMAC_KEY or ""
         self._timeout  = settings.OPENWA_TIMEOUT or 30
-        self._session  = requests.Session()
+        self._session  = httpx.Client(timeout=self._timeout)
         self._session.headers.update({
             "x-api-key":      self.api_key,
             "Content-Type":   "application/json",
@@ -153,16 +152,15 @@ class OpenWAService(_BaseService):
                 self._url(path),
                 json=payload,
                 headers=headers,
-                timeout=self._timeout,
             )
             resp.raise_for_status()
             data = resp.json()
             logger.info("OpenWA POST %s → %s", path, resp.status_code)
             return data
-        except requests.HTTPError as e:
+        except httpx.HTTPStatusError as e:
             logger.error("OpenWA %s HTTP error: %s — %s", path, e, getattr(e.response, "text", ""))
             raise WhatsAppServiceError(f"OpenWA {path} failed ({e.response.status_code}): {e.response.text}")
-        except requests.RequestException as e:
+        except httpx.RequestError as e:
             logger.error("OpenWA %s request error: %s", path, e)
             raise WhatsAppServiceError(f"OpenWA {path} network error: {e}")
 
@@ -342,7 +340,7 @@ class OpenWAService(_BaseService):
                 "gateway_url": self.base_url,
                 "session":    self.session,
             }
-        except requests.RequestException as e:
+        except httpx.RequestError as e:
             return {"healthy": False, "provider": "openwa", "error": str(e)}
 
 
@@ -355,7 +353,7 @@ class MetaWhatsAppService(_BaseService):
         self.base_url       = f"https://graph.facebook.com/v18.0"
         self.phone_number_id = settings.META_PHONE_NUMBER_ID
         self.access_token    = settings.META_ACCESS_TOKEN
-        self._request_session = requests.Session()
+        self._request_session = httpx.Client(timeout=15.0)
         self._request_session.headers.update({
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type":  "application/json",
@@ -376,10 +374,10 @@ class MetaWhatsAppService(_BaseService):
         elif content.get("type") == "image":
             payload["image"] = {"link": content["image"]["link"]}
         try:
-            resp = self._request_session.post(url, json=payload, timeout=15)
+            resp = self._request_session.post(url, json=payload)
             resp.raise_for_status()
             return {"success": True, "provider": "meta", "response": resp.json()}
-        except requests.RequestException as exc:
+        except httpx.RequestError as exc:
             return {"success": False, "error": str(exc)}
 
     def send_text(self, to_number: str, message: str) -> Dict:
