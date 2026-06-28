@@ -8,6 +8,14 @@ Quick start:  see README.md
 import os
 from functools import lru_cache
 
+try:
+    from opentelemetry import trace
+    # Initialize tracer
+    tracer = trace.get_tracer(__name__)
+except ImportError:
+    trace = None
+    tracer = None
+
 
 class Settings:
     # ─ App ───────────────────────────────────────────────────────
@@ -80,14 +88,15 @@ class Settings:
     SUPABASE_SERVICE_KEY:    str = os.getenv("SUPABASE_SERVICE_KEY",   "")
 
     # ─ Rate limits ───────────────────────────────────────────────
-    MAX_CONVERSATIONS_PER_DAY:    int = int(os.getenv("MAX_CONVERSATIONS_PER_DAY",    "200"))
-    MAX_MESSAGES_PER_CONVERSATION: int = int(os.getenv("MAX_MESSAGES_PER_CONVERSATION", "50"))
-    AI_RATE_LIMIT_PER_MINUTE:     int = int(os.getenv("AI_RATE_LIMIT_PER_MINUTE",     "18"))
-    BUSINESS_HOURS_START:         int = int(os.getenv("BUSINESS_HOURS_START",        "8"))
-    BUSINESS_HOURS_END:           int = int(os.getenv("BUSINESS_HOURS_END",          "18"))
-    AUTO_REPLY_ENABLED:           bool = os.getenv("AUTO_REPLY_ENABLED",    "true").lower() == "true"
-    MESSAGE_DELAY_MIN:          float = float(os.getenv("MESSAGE_DELAY_MIN","1"))
-    AUTO_REPLY_TYPING_DELAY:      int = int(os.getenv("AUTO_REPLY_TYPING_DELAY","2"))
+# PRODUCTION RATE LIMITS
+MAX_CONVERSATIONS_PER_DAY:    int = int(os.getenv("MAX_CONVERSATIONS_PER_DAY",    "200"))
+MAX_MESSAGES_PER_CONVERSATION: int = int(os.getenv("MAX_MESSAGES_PER_CONVERSATION", "50"))
+AI_RATE_LIMIT_PER_MINUTE:     int = int(os.getenv("AI_RATE_LIMIT_PER_MINUTE",     "18"))
+BUSINESS_HOURS_START:         int = int(os.getenv("BUSINESS_HOURS_START",        "8"))
+BUSINESS_HOURS_END:           int = int(os.getenv("BUSINESS_HOURS_END",          "18"))
+AUTO_REPLY_ENABLED:           bool = os.getenv("AUTO_REPLY_ENABLED",    "true").lower() == "true"
+MESSAGE_DELAY_MIN:          float = float(os.getenv("MESSAGE_DELAY_MIN","1"))
+AUTO_REPLY_TYPING_DELAY:      int = int(os.getenv("AUTO_REPLY_TYPING_DELAY","2"))
 
     # ─ Computed ──────────────────────────────────────────────────
     @property

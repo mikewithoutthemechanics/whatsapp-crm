@@ -5,6 +5,7 @@ REST API endpoints for the WhatsApp CRM.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status, Query, UploadFile, File
+import re
 from typing import Optional, List
 from datetime import datetime, timedelta
 import json
@@ -84,6 +85,14 @@ class QuickReply(BaseModel):
     to: str
 
 
+def _sanitize_search_query(query: str) -> str:
+    """Sanitize search query to prevent injection attacks."""
+    # Remove special characters that could be used for injection
+    sanitized = re.sub(r"[%_\\]", "", query)
+    # Limit length to prevent DoS
+    return sanitized[:100]
+
+
 # ─── Contacts Endpoints ──────────────────────────────────────
 
 @contacts_router.get("/", response_model=List[dict])
@@ -99,13 +108,18 @@ async def list_contacts(
     query = {}
 
     if search:
-        query["or"] = [
-            {"first_name": {"ilike": f"%{search}%"}},
-            {"last_name": {"ilike": f"%{search}%"}},
-            {"whatsapp_number": {"ilike": f"%{search}%"}},
-        ]
+        # Sanitize search input
+        safe_search = _sanitize_search_query(search)
+        if safe_search:  # Only add query if not empty after sanitization
+            query["or"] = [
+                {"first_name": {"ilike": f"%{safe_search}%"}},
+                {"last_name": {"ilike": f"%{safe_search}%"}},
+                {"whatsapp_number": {"ilike": f"%{safe_search}%"}},
+            ]
     if lead_status:
-        query["lead_status"] = lead_status
+        # Sanitize lead_status (allow only alphanumeric and underscores)
+        if re.match(r'^[a-zA-Z0-9_]+$', str(lead_status)):
+            query["lead_status"] = lead_status
 
     # In a real app, this would query Supabase
     # For now, return a schema example

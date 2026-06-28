@@ -15,7 +15,14 @@ from datetime import datetime
 from typing import Optional, Dict, List
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from app.config import settings
+from app.config import settings, tracer
+
+try:
+    from circuitbreaker import circuit
+    HAS_CIRCUIT_BREAKER = True
+except ImportError:
+    HAS_CIRCUIT_BREAKER = False
+    circuit = lambda **kwargs: lambda f: f
 
 
 class AIEngine:
@@ -28,9 +35,21 @@ class AIEngine:
         self.request_counts = {"groq": 0, "openrouter": 0}
 
     # ─── Groq API (async wrapper) ──────────────────────────────────────────────
+    @circuit(fail_after=3, reset_timeout=300)
     def _call_groq(self, prompt: str, model: str = "llama-3.1-8b-instant",
-                     max_tokens: int = 500) -> Optional[str]:
+                   max_tokens: int = 500) -> Optional[str]:
         """Call Groq Console API. Free: 30 RPM, 14,400 RPD."""
+        if tracer:
+            with tracer.start_as_current_span("groq_api_call") as span:
+                span.set_attribute("model", model)
+                span.set_attribute("max_tokens", max_tokens)
+                result = self._execute_groq_call(prompt, model, max_tokens)
+                span.set_attribute("success", result is not None)
+                return result
+        return self._execute_groq_call(prompt, model, max_tokens)
+
+    def _execute_groq_call(self, prompt: str, model: str, max_tokens: int) -> Optional[str]:
+        """Execute the actual Groq API call."""
         url = "https://api.groq.com/openai/v1/chat/completions"
         payload = {
             "model": model,
@@ -64,6 +83,7 @@ class AIEngine:
             return None
 
     # ─── OpenRouter API (async wrapper) ────────────────────────────────────────
+    @circuit(fail_after=3, reset_timeout=300)
     def _call_openrouter(self, prompt: str,
                          model: str = "deepseek/deepseek-r1:free",
                          max_tokens: int = 500) -> Optional[str]:

@@ -254,6 +254,17 @@ Probe `/api/webhooks/openwa/resources/health` first, cache the schema, and wire 
 
 ---
 
+## Security
+
+- **Rate Limiting**: Max 200 conversations per day, 50 messages per conversation
+- **JWT Authentication**: HMAC-signed tokens for admin routes
+- **Secure Cookies**: HttpOnly, SameSite=Lax with Secure flag in production
+- **API Key Validation**: Required fields checked on startup
+- **Circuit Breakers**: AI services protected against cascading failures
+- **Input Sanitization**: Search queries sanitized against injection attacks
+
+---
+
 ## Tech Stack
 
 - **Backend**: FastAPI (Python 3.12)

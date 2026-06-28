@@ -437,14 +437,34 @@ def openapi():
 
 @app.post("/api/auth/login")
 def login(body: LoginReq):
-    admin_pw = os.getenv("ADMIN_PASSWORD", "changeme123")
-    if body.password != admin_pw:
+    admin_pw = os.getenv("ADMIN_PASSWORD", "")
+    if not admin_pw:
+        raise HTTPException(500, "ADMIN_PASSWORD not configured")
+    
+    # Hash the provided password and compare with stored hash
+    # Use SECRET_KEY as salt for additional security
+    import hashlib, hmac
+    provided_hash = hashlib.pbkdf2_hmac(
+        'sha256', 
+        body.password.encode(), 
+        os.getenv("SECRET_KEY", "default_salt").encode(), 
+        100000
+    )
+    stored_hash = hashlib.pbkdf2_hmac(
+        'sha256', 
+        admin_pw.encode(), 
+        os.getenv("SECRET_KEY", "default_salt").encode(), 
+        100000
+    )
+    
+    if not hmac.compare_digest(provided_hash, stored_hash):
         raise HTTPException(401, "Invalid password")
+    
     now = datetime.utcnow()
     exp = now + timedelta(hours=24)
     import hmac, hashlib, base64
     token_raw = json.dumps({"sub": "admin", "exp": exp.timestamp(), "iat": now.timestamp()})
-    signature = hmac.new(admin_pw.encode(), token_raw.encode(), hashlib.sha256).hexdigest()
+    signature = hmac.new(os.getenv("SECRET_KEY", "").encode(), token_raw.encode(), hashlib.sha256).hexdigest()
     token = base64.b64encode(f"{token_raw}|{signature}".encode()).decode()
     return {"access_token": token, "token_type": "bearer", "expires_in": 86400}
 

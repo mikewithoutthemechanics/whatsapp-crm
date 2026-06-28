@@ -1,0 +1,24 @@
+# WhatsApp CRM SA - Railway Dockerfile
+# Multi-stage build for production deployment
+
+FROM python:3.12-slim AS base
+WORKDIR /app
+
+# Install system dependencies
+RUN pip install --no-cache-dir fastapi uvicorn httpx pyjwt slowapi
+
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application
+COPY app/ ./app/
+COPY api/ ./api/
+COPY scripts/ ./scripts/
+
+# Create non-root user
+RUN useradd -m wavi
+USER wavi
+
+# Start server
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
