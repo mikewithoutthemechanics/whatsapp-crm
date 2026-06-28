@@ -132,7 +132,11 @@ def create_contact(
 
 def get_contact(db: Session, contact_id: str) -> Optional[Contact]:
     """Get a contact by ID."""
-    return db.query(Contact).filter(Contact.id == contact_id).first()
+    try:
+        contact_uuid = uuid.UUID(contact_id) if isinstance(contact_id, str) else contact_id
+    except (ValueError, AttributeError):
+        return None
+    return db.query(Contact).filter(Contact.id == contact_uuid).first()
 
 
 def get_contact_by_phone(db: Session, phone: str, business_id: uuid.UUID = None) -> Optional[Contact]:
@@ -146,7 +150,11 @@ def get_contact_by_phone(db: Session, phone: str, business_id: uuid.UUID = None)
 
 def update_contact(db: Session, contact_id: str, updates: Dict) -> Optional[Contact]:
     """Update a contact."""
-    contact = db.query(Contact).filter(Contact.id == contact_id).first()
+    try:
+        contact_uuid = uuid.UUID(contact_id) if isinstance(contact_id, str) else contact_id
+    except (ValueError, AttributeError):
+        return None
+    contact = db.query(Contact).filter(Contact.id == contact_uuid).first()
     if not contact:
         return None
     
@@ -161,12 +169,16 @@ def update_contact(db: Session, contact_id: str, updates: Dict) -> Optional[Cont
 
 def delete_contact(db: Session, contact_id: str) -> bool:
     """Delete a contact and its associated records."""
-    contact = db.query(Contact).filter(Contact.id == contact_id).first()
+    try:
+        contact_uuid = uuid.UUID(contact_id) if isinstance(contact_id, str) else contact_id
+    except (ValueError, AttributeError):
+        return False
+    contact = db.query(Contact).filter(Contact.id == contact_uuid).first()
     if not contact:
         return False
     
     # Delete contact tags
-    db.query(ContactTag).filter(ContactTag.contact_id == contact_id).delete()
+    db.query(ContactTag).filter(ContactTag.contact_id == contact_uuid).delete()
     
     # Delete contact
     db.delete(contact)
@@ -351,11 +363,15 @@ def list_tags(db: Session, business_id: uuid.UUID = None) -> List[Tag]:
     return query.order_by(Tag.name).all()
 
 
-def get_contact_tags(db: Session, contact_id: uuid.UUID) -> List[Tag]:
+def get_contact_tags(db: Session, contact_id) -> List[Tag]:
     """Get all tags for a contact."""
+    try:
+        contact_uuid = uuid.UUID(str(contact_id)) if not isinstance(contact_id, uuid.UUID) else contact_id
+    except (ValueError, AttributeError):
+        return []
     return (
         db.query(Tag)
         .join(ContactTag)
-        .filter(ContactTag.contact_id == contact_id)
+        .filter(ContactTag.contact_id == contact_uuid)
         .all()
     )

@@ -2,24 +2,30 @@
 WhatsApp CRM SA — Drip Campaign Engine
 =======================================
 Manages automated drip campaigns and broadcasts for SA SMMEs.
+Uses SQLAlchemy instead of Supabase client.
 """
 
 import time
 import json
 import os
 import sys
+import uuid
+import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List
-from enum import Enum
 
-import requests
-import logging
+from sqlalchemy.orm import Session
+from sqlalchemy import and_
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from app.models import Campaign, CampaignSubscriber, Contact, MessageTemplate, Message
 from app.config import settings
 
+logger = logging.getLogger(__name__)
 
-class CampaignStatus(Enum):
+
+class CampaignStatus:
     DRAFT = "draft"
     ACTIVE = "active"
     PAUSED = "paused"
@@ -27,122 +33,125 @@ class CampaignStatus(Enum):
 
 
 class DripCampaignEngine:
-    """Manages automated drip campaigns for WhatsApp CRM."""
+    """Manages automated drip campaigns for WhatsApp CRM using SQLAlchemy."""
 
-    def __init__(self):
-        self.db = None  # Will be set by main app
+    def __init__(self, db: Session = None):
+        self.db = db
 
-    def load_campaign(self, campaign_id: str) -> Optional[Dict]:
-        """Load campaign from database."""
-        if not self.db:
-            return None
+    def set_db(self, db: Session):
+        """Set the database session."""
+        self.db = db
 
-        query = self.db.table("campaigns").select("*").eq("id", campaign_id).single()
-        return query.data if query.data else None
-
-    def get_active_campaigns(self) -> List[Dict]:
+    def get_active_campaigns(self) -> List[Campaign]:
         """Get all active campaigns."""
         if not self.db:
             return []
-
-        query = self.db.table("campaigns").select("*").eq("status", "active")
-        return query.data or []
+        return self.db.query(Campaign).filter(
+            Campaign.status == CampaignStatus.ACTIVE
+        ).all()
 
     def get_due_subscribers(self) -> List[Dict]:
         """Get all subscribers due for their next campaign message."""
         if not self.db:
             return []
 
-        now = datetime.utcnow().isoformat()
-        query = self.db.table("campaign_subscribers").select(
-            "*, contacts!inner(whatsapp_number)"
-        ).lt("next_send_at", now).eq("status", "active")
+        now = datetime.utcnow()
+        subscribers = (
+            self.db.query(CampaignSubscriber, Contact, Campaign)
+            .join(Contact, CampaignSubscriber.contact_id == Contact.id)
+            .join(Campaign, CampaignSubscriber.campaign_id == Campaign.id)
+            .filter(
+                CampaignSubscriber.status == "active",
+                CampaignSubscriber.next_send_at <= now,
+            )
+            .all()
+        )
 
-        return query.data or []
+        return [
+            {
+                "subscriber_id": str(sub.id),
+                "campaign_id": str(campaign.id),
+                "contact_id": str(contact.id),
+                "whatsapp_number": contact.whatsapp_number,
+                "current_step": sub.current_step,
+                "messages_sequence": campaign.messages_sequence or [],
+                "campaign_name": campaign.name,
+            }
+            for sub, contact, campaign in subscribers
+        ]
 
     def process_due_messages(self) -> Dict:
         """Process all due campaign messages. Called by cron."""
+        if not self.db:
+            return {"sent": 0, "failed": 0, "skipped": 0}
+
         subscribers = self.get_due_subscribers()
         results = {"sent": 0, "failed": 0, "skipped": 0}
 
         for sub in subscribers:
-            campaign = self.load_campaign(sub.get("campaign_id"))
-            if not campaign:
-                results["skipped"] += 1
-                continue
-
-            # Get current step
-            step_index = sub.get("current_step", 0)
-            messages_seq = campaign.get("messages_sequence", [])
+            step_index = sub["current_step"]
+            messages_seq = sub["messages_sequence"]
 
             if step_index >= len(messages_seq):
                 # Campaign complete
-                self.db.table("campaign_subscribers").update(
-                    {"status": "completed"}
-                ).eq("id", sub.get("id"))
+                subscriber = self.db.query(CampaignSubscriber).filter(
+                    CampaignSubscriber.id == uuid.UUID(sub["subscriber_id"])
+                ).first()
+                if subscriber:
+                    subscriber.status = "completed"
+                    self.db.commit()
                 results["skipped"] += 1
                 continue
 
             step = messages_seq[step_index]
-            template_id = step.get("template_id")
+            message_text = step.get("message", "")
 
-            # Load template
-            template = self.load_template(template_id)
-            if not template:
-                results["failed"] += 1
-                continue
-
-            # Get contact
-            contact_number = sub.get("contacts", {}).get("whatsapp_number", "")
-            if not contact_number:
+            if not message_text:
                 results["skipped"] += 1
                 continue
 
             # Send message
             try:
-                self._send_template_message(contact_number, template, sub)
+                self._send_message(sub["whatsapp_number"], message_text, sub["campaign_name"])
                 results["sent"] += 1
 
-                # Update subscriber
-                next_step = step_index + 1
-                next_delay = (
-                    messages_seq[next_step].get("delay_hours", 0)
-                    if next_step < len(messages_seq)
-                    else 0
-                )
-                next_send = (
-                    datetime.utcnow() + timedelta(hours=next_delay)
-                ).isoformat()
+                # Update subscriber to next step
+                subscriber = self.db.query(CampaignSubscriber).filter(
+                    CampaignSubscriber.id == uuid.UUID(sub["subscriber_id"])
+                ).first()
+                if subscriber:
+                    next_step = step_index + 1
+                    next_delay = (
+                        messages_seq[next_step].get("delay_hours", 0)
+                        if next_step < len(messages_seq)
+                        else 0
+                    )
+                    subscriber.current_step = next_step
+                    subscriber.next_send_at = datetime.utcnow() + timedelta(hours=next_delay)
 
-                self.db.table("campaign_subscribers").update({
-                    "current_step": next_step,
-                    "next_send_at": next_send,
-                }).eq("id", sub.get("id"))
+                    # Update campaign stats
+                    campaign = self.db.query(Campaign).filter(
+                        Campaign.id == uuid.UUID(sub["campaign_id"])
+                    ).first()
+                    if campaign:
+                        campaign.sent_count = (campaign.sent_count or 0) + 1
+
+                    self.db.commit()
 
             except Exception as e:
-                print(f"Campaign message failed: {e}")
+                logger.error("Campaign message failed for %s: %s", sub["whatsapp_number"], e)
                 results["failed"] += 1
 
         return results
 
-    def load_template(self, template_id: str) -> Optional[Dict]:
-        """Load a message template from database."""
-        if not self.db:
-            return None
-
-        query = self.db.table("message_templates").select("*").eq("id", template_id).single()
-        return query.data
-
-    def _send_template_message(self, to_number: str, template: Dict, subscriber: Dict):
-        """Send a template message via WhatsApp API."""
+    def _send_message(self, to_number: str, message: str, campaign_name: str = ""):
+        """Send a message via WhatsApp service."""
         try:
             from app.services.whatsapp_service import WhatsAppService
             ws = WhatsAppService()
-            body = template.get("body", "")
-            ws.send_text(to_number, body)
+            ws.send_text(to_number, message)
         except Exception as e:
-            logger = logging.getLogger(__name__)
-            logger.error("Failed to send campaign message to %s: %s", to_number, e)
+            logger.error("Failed to send WhatsApp message to %s: %s", to_number, e)
             raise
 
     def add_subscriber(self, campaign_id: str, contact_id: str,
@@ -151,26 +160,38 @@ class DripCampaignEngine:
         if not self.db:
             return {"success": False, "error": "Database not initialized"}
 
-        send_at = (datetime.utcnow() + timedelta(hours=initial_delay_hours)).isoformat()
-
         try:
-            self.db.table("campaign_subscribers").insert({
-                "campaign_id": campaign_id,
-                "contact_id": contact_id,
-                "current_step": 0,
-                "next_send_at": send_at,
-                "status": "active",
-            }).execute()
+            camp_uuid = uuid.UUID(campaign_id) if isinstance(campaign_id, str) else campaign_id
+            cont_uuid = uuid.UUID(contact_id) if isinstance(contact_id, str) else contact_id
+
+            # Check if already subscribed
+            existing = self.db.query(CampaignSubscriber).filter(
+                CampaignSubscriber.campaign_id == camp_uuid,
+                CampaignSubscriber.contact_id == cont_uuid,
+                CampaignSubscriber.status == "active",
+            ).first()
+
+            if existing:
+                return {"success": False, "error": "Contact already subscribed"}
+
+            subscriber = CampaignSubscriber(
+                campaign_id=camp_uuid,
+                contact_id=cont_uuid,
+                current_step=0,
+                next_send_at=datetime.utcnow() + timedelta(hours=initial_delay_hours),
+                status="active",
+            )
+            self.db.add(subscriber)
 
             # Increment campaign subscriber count
-            self.db.table("campaigns").update(
-                {"active_subscribers": self.db.rpc("increment_subscriber_count", {
-                    "campaign_id": campaign_id
-                })}
-            ).eq("id", campaign_id)
+            campaign = self.db.query(Campaign).filter(Campaign.id == camp_uuid).first()
+            if campaign:
+                campaign.active_subscribers = (campaign.active_subscribers or 0) + 1
 
+            self.db.commit()
             return {"success": True}
         except Exception as e:
+            self.db.rollback()
             return {"success": False, "error": str(e)}
 
     def unsubscribe(self, campaign_id: str, contact_id: str) -> Dict:
@@ -179,72 +200,115 @@ class DripCampaignEngine:
             return {"success": False, "error": "Database not initialized"}
 
         try:
-            self.db.table("campaign_subscribers").update(
-                {"status": "unsubscribed"}
-            ).eq("campaign_id", campaign_id).eq("contact_id", contact_id).execute()
+            camp_uuid = uuid.UUID(campaign_id) if isinstance(campaign_id, str) else campaign_id
+            cont_uuid = uuid.UUID(contact_id) if isinstance(contact_id, str) else contact_id
+
+            subscriber = self.db.query(CampaignSubscriber).filter(
+                CampaignSubscriber.campaign_id == camp_uuid,
+                CampaignSubscriber.contact_id == cont_uuid,
+            ).first()
+
+            if subscriber:
+                subscriber.status = "unsubscribed"
+                self.db.commit()
+
             return {"success": True}
         except Exception as e:
+            self.db.rollback()
             return {"success": False, "error": str(e)}
 
     def send_broadcast(self, message: str, tag_ids: List[str] = None,
-                       industry_filter: str = None, province_filter: str = None) -> Dict:
+                       province_filter: str = None) -> Dict:
         """Send a broadcast message to a targeted audience."""
         if not self.db:
             return {"success": False, "error": "Database not initialized"}
 
-        # Build query
-        query = self.db.table("contacts").select("whatsapp_number")
-
-        if tag_ids:
-            # Get contacts with matching tags
-            tag_contacts = self.db.table("contact_tags").select("contact_id").in_(
-                "tag_id", tag_ids
-            )
-            if tag_contacts.data:
-                contact_ids = [c["contact_id"] for c in tag_contacts.data]
-                query = query.in_("id", contact_ids)
-
-        if industry_filter:
-            # Get contacts from businesses in this industry
-            query = query.eq("industry", industry_filter)
+        query = self.db.query(Contact)
 
         if province_filter:
-            query = query.eq("province", province_filter)
+            query = query.filter(Contact.province == province_filter)
 
-        resp = query.execute()
-        contacts = resp.data or []
+        if tag_ids:
+            from app.models import ContactTag
+            tag_uuids = [uuid.UUID(t) for t in tag_ids]
+            matching_contact_ids = (
+                self.db.query(ContactTag.contact_id)
+                .filter(ContactTag.tag_id.in_(tag_uuids))
+                .distinct()
+                .all()
+            )
+            contact_ids = [r[0] for r in matching_contact_ids]
+            query = query.filter(Contact.id.in_(contact_ids))
+
+        contacts = query.all()
         sent = 0
         failed = 0
 
-        from app.services.whatsapp_service import WhatsAppService
-        ws = WhatsAppService()
-
         for contact in contacts:
+            if not contact.whatsapp_number:
+                failed += 1
+                continue
             try:
-                number = contact.get("whatsapp_number", "")
-                if number:
-                    ws.send_text(number, message)
-                    sent += 1
-                else:
-                    failed += 1
+                self._send_message(contact.whatsapp_number, message)
+                sent += 1
             except Exception:
                 failed += 1
             time.sleep(0.5)  # Rate limiting
 
         return {"success": True, "sent": sent, "failed": failed}
 
-    def check_word_trigger(self, message_body: str, campaign_id: str) -> Optional[Dict]:
-        """Check if a message contains a campaign trigger word."""
+    def auto_enroll_new_leads(self, contact_id: str) -> Dict:
+        """Auto-enroll a new lead in the welcome campaign."""
         if not self.db:
-            return None
+            return {"success": False, "error": "Database not initialized"}
 
-        campaign = self.load_campaign(campaign_id)
-        if not campaign:
-            return None
+        # Find the welcome campaign
+        welcome_campaign = self.db.query(Campaign).filter(
+            Campaign.status == CampaignStatus.ACTIVE,
+            Campaign.trigger_event == "new_lead",
+        ).first()
 
-        trigger_words = campaign.get("trigger_words", [])
-        for word in trigger_words:
-            if word.lower() in message_body.lower():
-                return {"triggered": True, "campaign_id": campaign_id, "keyword": word}
+        if not welcome_campaign:
+            return {"success": False, "error": "No active welcome campaign found"}
 
-        return None
+        return self.add_subscriber(str(welcome_campaign.id), contact_id, initial_delay_hours=0)
+
+    def get_campaign_stats(self, campaign_id: str) -> Dict:
+        """Get statistics for a campaign."""
+        if not self.db:
+            return {}
+
+        try:
+            camp_uuid = uuid.UUID(campaign_id) if isinstance(campaign_id, str) else campaign_id
+
+            campaign = self.db.query(Campaign).filter(Campaign.id == camp_uuid).first()
+            if not campaign:
+                return {"error": "Campaign not found"}
+
+            total_subscribers = self.db.query(CampaignSubscriber).filter(
+                CampaignSubscriber.campaign_id == camp_uuid
+            ).count()
+
+            active_subscribers = self.db.query(CampaignSubscriber).filter(
+                CampaignSubscriber.campaign_id == camp_uuid,
+                CampaignSubscriber.status == "active",
+            ).count()
+
+            completed = self.db.query(CampaignSubscriber).filter(
+                CampaignSubscriber.campaign_id == camp_uuid,
+                CampaignSubscriber.status == "completed",
+            ).count()
+
+            return {
+                "campaign_id": campaign_id,
+                "name": campaign.name,
+                "status": campaign.status,
+                "total_subscribers": total_subscribers,
+                "active_subscribers": active_subscribers,
+                "completed": completed,
+                "sent_count": campaign.sent_count or 0,
+                "delivered_count": campaign.delivered_count or 0,
+                "replied_count": campaign.replied_count or 0,
+            }
+        except Exception as e:
+            return {"error": str(e)}

@@ -2,40 +2,12 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+      "src": "api/main.py",
+      "use": "@vercel/python",
+      "config": { "runtime": "python3.12" }
     }
   ],
-  "rewrites": [
-    { "source": "/",                 "destination": "/api/index.py" },
-    { "source": "/api/(.*)",          "destination": "/api/index.py" },
-    { "source": "/health",            "destination": "/api/index.py" },
-    { "source": "/support",           "destination": "/api/index.py" },
-    { "source": "/support/(.*)",      "destination": "/api/index.py" },
-    { "source": "/tickets",           "destination": "/api/index.py" },
-    { "source": "/tickets/(.*)",      "destination": "/api/index.py" },
-    { "source": "/dialog/(.*)",       "destination": "/api/index.py" },
-    { "source": "/dialog-window",     "destination": "/api/index.py" },
-    { "source": "/protocol/(.*)",     "destination": "/api/index.py" },
-    { "source": "/enc/(.*)",          "destination": "/api/index.py" },
-    { "source": "/dig/(.*)",          "destination": "/api/index.py" },
-    { "source": "/web/(.*)",          "destination": "/api/index.py" },
-    { "source": "/web",               "destination": "/api/index.py" },
-    { "source": "/account/(.*)",      "destination": "/api/index.py" },
-    { "source": "/functions/(.*)",    "destination": "/api/index.py" },
-    { "source": "/functions",         "destination": "/api/index.py" },
-    { "source": "/auth/(.*)",         "destination": "/api/index.py" },
-    { "source": "/dashboard",         "destination": "/api/index.py" },
-    { "source": "/dashboard/(.*)",    "destination": "/api/index.py" },
-    { "source": "/contacts",          "destination": "/api/index.py" },
-    { "source": "/contacts/(.*)",     "destination": "/api/index.py" },
-    { "source": "/conversations",     "destination": "/api/index.py" },
-    { "source": "/conversations/(.*)","destination": "/api/index.py" },
-    { "source": "/campaigns",         "destination": "/api/index.py" },
-    { "source": "/campaigns/(.*)",    "destination": "/api/index.py" },
-    { "source": "/ai",                "destination": "/api/index.py" },
-    { "source": "/ai/(.*)",           "destination": "/api/index.py" },
-    { "source": "/login",             "destination": "/api/index.py" },
-    { "source": "/login/(.*)",        "destination": "/api/index.py" }
+  "routes": [
+    { "src": "/(.*)", "dest": "api/main.py" }
   ]
 }

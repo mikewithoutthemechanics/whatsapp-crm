@@ -45,7 +45,11 @@ LEAD_STATUS_THRESHOLDS = {
 
 def calculate_lead_score(db: Session, contact_id: str, action: str) -> int:
     """Calculate and update lead score based on action."""
-    contact = db.query(Contact).filter(Contact.id == contact_id).first()
+    try:
+        contact_uuid = uuid.UUID(contact_id) if isinstance(contact_id, str) else contact_id
+    except (ValueError, AttributeError):
+        return 0
+    contact = db.query(Contact).filter(Contact.id == contact_uuid).first()
     if not contact:
         return 0
     

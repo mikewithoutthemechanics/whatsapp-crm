@@ -2,7 +2,7 @@ services:
   - type: web
     name: whatsapp-crm
     runtime: docker
-    plan: starter
+    plan: free
     region: fra  # Frankfurt — closest to SA ( Cape / JHB uplinks fast to EU )
     dockerfilePath: Dockerfile
     healthCheckPath: /health

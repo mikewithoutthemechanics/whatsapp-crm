@@ -61,24 +61,27 @@ logger = logging.getLogger(__name__)
 # ─── Database connection ─────────────────────────────────────
 def init_database():
     """Initialize database using SQLAlchemy session layer."""
-    from app.database import engine, init_db
+    from app.database import engine, init_db, SessionLocal
     init_db()
-    return engine
+    return engine, SessionLocal
 
 
 # ─── Background tasks ────────────────────────────────────────
-db = init_database()
+engine, SessionLocal = init_database()
 campaign_engine = DripCampaignEngine()
-campaign_engine.db = db
 
 
 async def process_due_campaign_messages():
     """Process scheduled campaign messages."""
+    db = SessionLocal()
     try:
+        campaign_engine.set_db(db)
         result = campaign_engine.process_due_messages()
         logger.info("Campaign messages processed: %s", result)
     except Exception as e:
         logger.error("Campaign processing error: %s", e)
+    finally:
+        db.close()
 
 
 async def reset_ai_metrics():
@@ -194,6 +197,17 @@ async def setup_page():
     </html>
     """
     return HTMLResponse(content=html)
+
+
+# ─── Landing page ────────────────────────────────────────────
+@app.get("/landing")
+async def landing_page():
+    """Serve the public lead capture landing page."""
+    from fastapi.responses import FileResponse
+    landing_path = os.path.join(os.path.dirname(__file__), "..", "web", "landing", "index.html")
+    if os.path.exists(landing_path):
+        return FileResponse(landing_path, media_type="text/html")
+    raise HTTPException(404, "Landing page not found")
 
 
 # ─── Health check ────────────────────────────────────────────

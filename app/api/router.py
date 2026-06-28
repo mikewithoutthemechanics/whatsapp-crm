@@ -226,6 +226,36 @@ async def create_contact(contact_data: ContactCreate, db: Session = Depends(get_
     }
 
 
+# ─── Tags Endpoints (must be before /{contact_id} to avoid route conflict) ──
+
+@contacts_router.get("/tags")
+async def list_tags(search: Optional[str] = None, db: Session = Depends(get_db)):
+    """List available tags for filtering contacts."""
+    tags = svc_list_tags(db)
+    
+    if search:
+        tags = [t for t in tags if search.lower() in t.name.lower()]
+    
+    return {
+        "data": [
+            {
+                "id": str(t.id),
+                "name": t.name,
+                "color": t.color,
+                "usage_count": t.usage_count or 0,
+            }
+            for t in tags
+        ],
+    }
+
+
+@contacts_router.post("/tags")
+async def create_tag(name: str, color: str = "#3B82F6", db: Session = Depends(get_db)):
+    """Create a new tag."""
+    tag = svc_create_tag(db, name, color)
+    return {"success": True, "id": str(tag.id), "name": tag.name, "color": tag.color}
+
+
 @contacts_router.get("/{contact_id}")
 async def get_contact(contact_id: str, db: Session = Depends(get_db)):
     """Get a single contact by ID."""
@@ -586,7 +616,9 @@ async def list_campaigns(
 @campaigns_router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_campaign(campaign_data: dict, db: Session = Depends(get_db)):
     """Create a new drip campaign."""
+    business = get_or_create_business(db)
     campaign = Campaign(
+        business_id=business.id,
         name=campaign_data.get("name", ""),
         campaign_type=campaign_data.get("campaign_type", "drip"),
         trigger_event=campaign_data.get("trigger_event", "new_lead"),
@@ -615,7 +647,11 @@ async def create_campaign(campaign_data: dict, db: Session = Depends(get_db)):
 @campaigns_router.post("/{campaign_id}/activate")
 async def activate_campaign(campaign_id: str, db: Session = Depends(get_db)):
     """Activate a campaign."""
-    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    try:
+        camp_uuid = __import__("uuid").UUID(campaign_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(400, "Invalid campaign ID")
+    campaign = db.query(Campaign).filter(Campaign.id == camp_uuid).first()
     if not campaign:
         raise HTTPException(404, "Campaign not found")
     
@@ -628,7 +664,11 @@ async def activate_campaign(campaign_id: str, db: Session = Depends(get_db)):
 @campaigns_router.post("/{campaign_id}/pause")
 async def pause_campaign(campaign_id: str, db: Session = Depends(get_db)):
     """Pause a campaign."""
-    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    try:
+        camp_uuid = __import__("uuid").UUID(campaign_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(400, "Invalid campaign ID")
+    campaign = db.query(Campaign).filter(Campaign.id == camp_uuid).first()
     if not campaign:
         raise HTTPException(404, "Campaign not found")
     
@@ -643,20 +683,27 @@ async def add_subscriber(campaign_id: str, contact_id: str,
                         delay_hours: int = Query(0, ge=0),
                         db: Session = Depends(get_db)):
     """Add a contact as a campaign subscriber."""
+    import uuid as _uuid
     from datetime import datetime, timedelta
     
-    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    try:
+        camp_uuid = _uuid.UUID(campaign_id)
+        cont_uuid = _uuid.UUID(contact_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(400, "Invalid ID format")
+    
+    campaign = db.query(Campaign).filter(Campaign.id == camp_uuid).first()
     if not campaign:
         raise HTTPException(404, "Campaign not found")
     
-    contact = db.query(Contact).filter(Contact.id == contact_id).first()
+    contact = db.query(Contact).filter(Contact.id == cont_uuid).first()
     if not contact:
         raise HTTPException(404, "Contact not found")
     
     # Check if already subscribed
     existing = db.query(CampaignSubscriber).filter(
-        CampaignSubscriber.campaign_id == campaign_id,
-        CampaignSubscriber.contact_id == contact_id,
+        CampaignSubscriber.campaign_id == camp_uuid,
+        CampaignSubscriber.contact_id == cont_uuid,
         CampaignSubscriber.status == "active",
     ).first()
     
@@ -664,8 +711,8 @@ async def add_subscriber(campaign_id: str, contact_id: str,
         return {"success": False, "error": "Contact already subscribed"}
     
     subscriber = CampaignSubscriber(
-        campaign_id=campaign_id,
-        contact_id=contact_id,
+        campaign_id=camp_uuid,
+        contact_id=cont_uuid,
         current_step=0,
         next_send_at=datetime.utcnow() + timedelta(hours=delay_hours),
         status="active",
@@ -681,9 +728,16 @@ async def add_subscriber(campaign_id: str, contact_id: str,
 @campaigns_router.post("/{campaign_id}/unsubscribe")
 async def unsubscribe(campaign_id: str, contact_id: str, db: Session = Depends(get_db)):
     """Unsubscribe a contact from a campaign."""
+    import uuid as _uuid
+    try:
+        camp_uuid = _uuid.UUID(campaign_id)
+        cont_uuid = _uuid.UUID(contact_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(400, "Invalid ID format")
+    
     subscriber = db.query(CampaignSubscriber).filter(
-        CampaignSubscriber.campaign_id == campaign_id,
-        CampaignSubscriber.contact_id == contact_id,
+        CampaignSubscriber.campaign_id == camp_uuid,
+        CampaignSubscriber.contact_id == cont_uuid,
     ).first()
     
     if not subscriber:
@@ -763,6 +817,7 @@ async def dashboard_summary(db: Session = Depends(get_db)):
     ).count()
     
     return {
+        "total_contacts": db.query(Contact).count(),
         "total_conversations": total_conversations,
         "active_conversations": active_conversations,
         "ai_handled": ai_handled,
@@ -891,36 +946,6 @@ async def verify_webhook(mode: str = Query(""), token: str = Query(""),
     if valid:
         return {"status": "verified", "hub_challenge": token}
     raise HTTPException(code, "Verification failed")
-
-
-# ─── Tags Endpoints ──────────────────────────────────────────
-
-@contacts_router.get("/tags")
-async def list_tags(search: Optional[str] = None, db: Session = Depends(get_db)):
-    """List available tags for filtering contacts."""
-    tags = svc_list_tags(db)
-    
-    if search:
-        tags = [t for t in tags if search.lower() in t.name.lower()]
-    
-    return {
-        "data": [
-            {
-                "id": str(t.id),
-                "name": t.name,
-                "color": t.color,
-                "usage_count": t.usage_count or 0,
-            }
-            for t in tags
-        ],
-    }
-
-
-@contacts_router.post("/tags")
-async def create_tag(name: str, color: str = "#3B82F6", db: Session = Depends(get_db)):
-    """Create a new tag."""
-    tag = svc_create_tag(db, name, color)
-    return {"success": True, "id": str(tag.id), "name": tag.name, "color": tag.color}
 
 
 # ─── Lead Capture Endpoints ──────────────────────────────────

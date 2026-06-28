@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp CRM for South African SMMEs</title>
+    <meta name="description" content="Automate your WhatsApp marketing and close more deals. Built for South African small businesses. Zero per-message costs.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #25D366;
+            --primary-dark: #128C7E;
+            --dark: #1a1a2e;
+            --darker: #0f0f1a;
+            --text: #e0e0e0;
+            --muted: #8892b0;
+            --card: #16213e;
+            --card-border: #1e3a5f;
+            --accent: #64ffda;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--darker);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--darker) 0%, #0a192f 50%, var(--dark) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(37, 211, 102, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(100, 255, 218, 0.05) 0%, transparent 40%);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-text h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-text .subtitle {
+            font-size: 1.25rem;
+            color: var(--muted);
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .lead-form-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .lead-form-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .lead-form-card .form-subtitle {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            background: var(--darker);
+            color: var(--text);
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: #555;
+        }
+
+        .phone-input {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .phone-prefix {
+            width: 80px;
+            padding: 0.85rem 0.75rem;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            background: var(--darker);
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .phone-input input {
+            flex: 1;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(37, 211, 102, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .trust-badges {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .badge-icon {
+            color: var(--primary);
+        }
+
+        .success-state {
+            display: none;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .success-state.active {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .success-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+        }
+
+        .success-state p {
+            color: var(--muted);
+            max-width: 350px;
+            margin: 0 auto;
+        }
+
+        .features {
+            padding: 6rem 2rem;
+            background: var(--dark);
+        }
+
+        .features-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .features .section-sub {
+            text-align: center;
+            color: var(--muted);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.15rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .pricing {
+            padding: 6rem 2rem;
+            background: var(--darker);
+        }
+
+        .pricing-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .pricing h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .pricing .section-sub {
+            color: var(--muted);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .price-card {
+            background: var(--card);
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            padding: 3rem;
+            display: inline-block;
+        }
+
+        .price-amount {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .price-period {
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .price-features {
+            list-style: none;
+            margin: 2rem 0;
+            text-align: left;
+            display: inline-block;
+        }
+
+        .price-features li {
+            padding: 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        .price-features li::before {
+            content: '✓';
+            color: var(--primary);
+            font-weight: bold;
+            margin-right: 0.75rem;
+        }
+
+        .cta-section {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--dark) 100%);
+        }
+
+        .cta-section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta-section p {
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 2rem;
+        }
+
+        footer {
+            padding: 2rem;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85rem;
+            background: var(--darker);
+        }
+
+        @media (max-width: 768px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                text-align: center;
+            }
+            .hero-text h1 { font-size: 2.5rem; }
+            .stats { justify-content: center; }
+            .features-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1>WhatsApp CRM for SA SMMEs</h1>
+            <p class="subtitle">Automate your marketing, close more deals, and never miss a lead — all on WhatsApp. Zero per-message costs.</p>
+            
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number">200+</div>
+                    <div class="stat-label">SA Businesses</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">R0</div>
+                    <div class="stat-label">Per Message</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Auto-Replies</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lead-form-card">
+            <div id="formState">
+                <h2>Get Started Free</h2>
+                <p class="form-subtitle">Join 200+ SA businesses already using WhatsApp CRM.</p>
+                
+                <form id="leadForm" onsubmit="submitLead(event)">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="first_name" placeholder="e.g. Thabo" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="last_name" placeholder="e.g. Mokoena" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="whatsapp">WhatsApp Number</label>
+                        <div class="phone-input">
+                            <div class="phone-prefix">+27</div>
+                            <input type="tel" id="whatsapp" name="whatsapp_number" placeholder="82 123 4567" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email (optional)</label>
+                        <input type="email" id="email" name="email" placeholder="you@business.co.za">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="businessType">Business Type</label>
+                        <select id="businessType" name="business_type">
+                            <option value="">Select your industry</option>
+                            <option value="retail">Retail / E-commerce</option>
+                            <option value="services">Professional Services</option>
+                            <option value="food">Food & Beverage</option>
+                            <option value="beauty">Beauty & Wellness</option>
+                            <option value="education">Education / Training</option>
+                            <option value="property">Property / Real Estate</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        Start Free Trial →
+                    </button>
+                </form>
+                
+                <div class="trust-badges">
+                    <span class="badge"><span class="badge-icon">🔒</span> No credit card</span>
+                    <span class="badge"><span class="badge-icon">⚡</span> 2-min setup</span>
+                    <span class="badge"><span class="badge-icon">🇿🇦</span> SA support</span>
+                </div>
+            </div>
+            
+            <div id="successState" class="success-state">
+                <div class="success-icon">🎉</div>
+                <h3>You're In!</h3>
+                <p>Check your WhatsApp — we've sent you a welcome message with next steps.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <div class="features-content">
+        <h2>Everything You Need</h2>
+        <p class="section-sub">Built specifically for South African small businesses.</p>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>AI Auto-Replies</h3>
+                <p>Instant replies to customer enquiries 24/7. Never miss a lead while you sleep.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>WhatsApp Broadcasts</h3>
+                <p>Send targeted campaigns to thousands. No per-message costs with OpenWA.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Drip Sequences</h3>
+                <p>Automated welcome, nurture, and conversion campaigns on autopilot.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Contact Management</h3>
+                <p>Organise leads with tags, scores, and pipeline stages.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Analytics Dashboard</h3>
+                <p>Track conversations, conversions, and campaign performance in real-time.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🇿🇦</div>
+                <h3>SA-Ready</h3>
+                <p>SA phone numbers, ZAR pricing, Load-shedding-proof hosting.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pricing">
+    <div class="pricing-content">
+        <h2>Simple Pricing</h2>
+        <p class="section-sub">No hidden fees. No per-message costs.</p>
+        
+        <div class="price-card">
+            <div class="price-amount">R297</div>
+            <div class="price-period">/month (excl. VAT)</div>
+            
+            <ul class="price-features">
+                <li>Unlimited WhatsApp messages</li>
+                <li>AI auto-replies (Groq/OpenRouter)</li>
+                <li>Drip campaign engine</li>
+                <li>Contact management + lead scoring</li>
+                <li>Broadcast to up to 10,000 contacts</li>
+                <li>Analytics dashboard</li>
+                <li>Email + WhatsApp support</li>
+            </ul>
+            
+            <button class="submit-btn" onclick="document.getElementById('firstName').focus()">
+                Start Free Trial →
+            </button>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <h2>Ready to Grow Your Business?</h2>
+    <p>Join 200+ South African SMMEs already using WhatsApp CRM.</p>
+</section>
+
+<footer>
+    <p>© 2026 WhatsApp CRM SA. Built for South African SMMEs. 🇿🇦</p>
+</footer>
+
+<script>
+    // Auto-capture UTM parameters
+    const params = new URLSearchParams(window.location.search);
+    const utmData = {
+        utm_source: params.get('utm_source') || '',
+        utm_medium: params.get('utm_medium') || '',
+        utm_campaign: params.get('utm_campaign') || '',
+    };
+
+    // Pre-fill form if UTM params present
+    if (utmData.utm_source) {
+        console.log('UTM captured:', utmData);
+    }
+
+    async function submitLead(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Joining...';
+
+        const phone = document.getElementById('whatsapp').value.replace(/\s/g, '');
+        const fullPhone = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
+
+        const payload = {
+            whatsapp_number: fullPhone,
+            first_name: document.getElementById('firstName').value,
+            last_name: document.getElementById('lastName').value,
+            email: document.getElementById('email').value || undefined,
+            source: 'landing_page',
+            message: 'Signed up via landing page',
+            ...utmData,
+        };
+
+        try {
+            const apiBase = window.location.hostname === 'localhost' 
+                ? 'http://localhost:8000' 
+                : window.location.origin;
+            
+            const resp = await fetch(`${apiBase}/api/leads/capture`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (resp.ok) {
+                document.getElementById('formState').style.display = 'none';
+                document.getElementById('successState').classList.add('active');
+            } else {
+                const err = await resp.json();
+                alert(err.detail || 'Something went wrong. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'Start Free Trial →';
+            }
+        } catch (err) {
+            console.error('Submit error:', err);
+            alert('Network error. Please check your connection and try again.');
+            btn.disabled = false;
+            btn.textContent = 'Start Free Trial →';
+        }
+    }
+</script>
+
+</body>
+</html>
