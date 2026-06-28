@@ -41,6 +41,7 @@ from app.api.router import (
     ai_router,
     dashboard_router,
     webhook_router,
+    leads_router,
 )
 from app.auth import auth_router, admin_router
 # admin_router includes:
@@ -59,35 +60,9 @@ logger = logging.getLogger(__name__)
 
 # ─── Database connection ─────────────────────────────────────
 def init_database():
-    """Initialize Supabase/PostgreSQL database connection."""
-    try:
-        import supabase
-        if "postgresql" in settings.DATABASE_URL or "supabase" in settings.DATABASE_URL:
-            url_parts = settings.DATABASE_URL.split("/")
-            project_ref = url_parts[-2] if len(url_parts) > 2 else ""
-            client = supabase.create_client(
-                f"https://{project_ref}.supabase.co",
-                settings.SUPABASE_SERVICE_KEY or ""
-            )
-            logger.info("Connected to Supabase database")
-            return client
-    except ImportError:
-        logger.warning("supabase package not installed. Run: pip install supabase")
-    except Exception as e:
-        logger.warning("Database connection failed: %s. Using SQLite fallback.", e)
-
-    # SQLite fallback for local development
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-    from app.models import Base
-    engine = create_engine(
-        "sqlite:///./whatsapp_crm.db",
-        echo=settings.DEBUG,
-        pool_size=10,
-        max_overflow=20,
-        pool_pre_ping=True,
-    )
-    Base.metadata.create_all(engine)
+    """Initialize database using SQLAlchemy session layer."""
+    from app.database import engine, init_db
+    init_db()
     return engine
 
 
@@ -332,6 +307,7 @@ app.include_router(campaigns_router)
 app.include_router(ai_router)
 app.include_router(dashboard_router)
 app.include_router(webhook_router)
+app.include_router(leads_router)
 
 
 # ─── Run directly ────────────────────────────────────────────

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Support - WhatsApp CRM SA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; background: #06080A; color: #F8FAFC; }
+    .glass { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(12px); border-radius: 1rem; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="glass max-w-md w-full p-8">
+    <h1 class="text-2xl font-bold mb-2 text-green-500">Support Ticket</h1>
+    <p class="text-gray-400 mb-6">We respond within 24-48 hours</p>
+    
+    <form id="ticket-form" class="space-y-4">
+      <div>
+        <label class="block text-sm mb-1">Issue Type</label>
+        <select name="issue_type" required class="w-full p-2 bg-gray-900 rounded">
+          <option>Ticket Classification Error</option>
+          <option>Setup Issue</option>
+          <option>AI Not Responding</option>
+          <option>WhatsApp Connection</option>
+          <option>Billing/Pricing</option>
+          <option>Other</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm mb-1">Priority</label>
+        <select name="priority" class="w-full p-2 bg-gray-900 rounded">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm mb-1">SLA</label>
+        <select name="sla" class="w-full p-2 bg-gray-900 rounded">
+          <option value="72h">72h (Free)</option>
+          <option value="48h" selected>48h (Standard)</option>
+          <option value="24h">24h (Priority)</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm mb-1">Description</label>
+        <textarea name="description" required placeholder="What's the issue?" rows="4" class="w-full p-2 bg-gray-900 rounded resize-none"></textarea>
+      </div>
+      
+      <div>
+        <label class="block text-sm mb-1">Email (optional)</label>
+        <input type="email" name="contact_email" placeholder="john@example.co.za" class="w-full p-2 bg-gray-900 rounded"/>
+      </div>
+      
+      <button type="submit" class="w-full py-2 bg-gradient-to-r from-green-500 to-green-600 rounded font-semibold">Submit</button>
+    </form>
+    
+    <div id="confirmation" class="hidden mt-4 text-center">
+      <p class="text-green-500">Ticket Created!</p>
+      <p class="text-sm text-gray-400" id="ticket-id"></p>
+    </div>
+  </div>
+  
+  <script>
+    document.getElementById('ticket-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form));
+      
+      try {
+        const res = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if(result.success) {
+          form.classList.add('hidden');
+          document.getElementById('ticket-id').textContent = `Ticket ID: ${result.ticket_id}`;
+          document.getElementById('confirmation').classList.remove('hidden');
+        }
+      } catch(err) {
+        alert('Error creating ticket');
+      }
+    });
+  </script>
+</body>
+</html>

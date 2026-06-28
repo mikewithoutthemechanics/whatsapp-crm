@@ -267,8 +267,14 @@ _STUB = {
         {"id": "t6", "name": "johannesburg", "color": "#8B5CF6", "count": 189},
         {"id": "t7", "name": "capetown", "color": "#EC4899", "count": 156},
         {"id": "t8", "name": "durban", "color": "#06B6D4", "count": 121},
-    ],
-}
+],
+ }
+ 
+ # ─── Ticketing System ──────────────────────────────────────────────
+ _STUB.update({
+     "tickets": [],
+     "ticket_id_counter": 1
+ })
 
 _PROVIDER = os.getenv("WHATSAPP_PROVIDER", "openwa")
 _AI_PROVIDER = os.getenv("AI_PROVIDER", "groq")
@@ -318,6 +324,39 @@ _TEMPLATE_REPLIES = {
     "goodbye": "You're very welcome! Feel free to reach out anytime. Have a great day! 👋",
 }
 
+_MULTI_LANG = {
+    "af": {
+        "greeting": "Hallo! 👋 Dankie vir u gemelding! Hoe kan ek vandag help?",
+        "pricing": "Dankie vir u belangstelling! 💬\nKan jy sê wat diens/produk u benodig? Ek sal 'n aangepaste aanbieding maak.",
+        "hours": "Ons is Ma–Vr, 08:00–18:00 SAST 📅\nStuur my 'n boodskap en ek sal terugkom.",
+        "location": "Ons is in Johannesburg en dien Suid-Afrika. Waar is jy?",
+        "generic": "Dankie vir u boodskap! 🙏\nOns sal so gau as moontlik reageer.",
+        "goodbye": "Jy is baie wilkom! Vrystatting om te kontak. Geniet dag!",
+    },
+    "zu": {
+        "greeting": "Sawubona! 👋 Ngikhuthaza ukuthi ngingathi ngalutho ngalinye?",
+        "pricing": "Ngikhuthaza ukuthi ngingathi ngalutho ngalinye? Ngiyisebenzisa ukuthi ndizithi izinhlelo zethu.",
+        "hours": "Sithandaza ne-Zulu, 08:00–18:00 SAST 📅",
+        "location": "Sithandaza kwi-Johannesburg ekuthi ngenzi izulu le Afrika.",
+        "generic": "Ngikhuthaza ukuthi ngingathi ngalutho ngalinye!",
+        "goodbye": "Uyakwazana kakhulu! Ungakhuthaza ngalinye phakathi!",
+    },
+    "xh": {
+        "greeting": "Molo! 👋 Enkosi kwiinkcubeko zakho! Uthi ndikufakala ngenani ukuthi ndingathandi?",
+        "pricing": "Enkosi kwiinkcubeko! 💬\nUthi ndikufakala ngenani? Ndizotha ukuthi ndizithi izinqubuzo zethu.",
+        "hours": "Sithandaza ne-Xhosa, 08:00–18:00 SAST 📅",
+        "location": "Sithandaza kwi-Johannesburg ekuthi ngenzi izulu le Afrika.",
+        "generic": "Enkosi kwiinkcubeko zakho! 🙏\nSithandaza ukuthi ndizithi ngenani?",
+        "goodbye": "Uyakwazana kakhulu! Ungakhuthaza ngalinye phakathi!",
+    },
+}
+
+_LANG_KEYWORDS = {
+    "af": ["hallo", "goeie", "hoekom", "hoeko", "dankie"],
+    "zu": ["sawubona", "ngikhuthaza", "enkosi", "salani", "ngalutho"],
+    "xh": ["molo", "enkosi", "uthi", "salani", "ngalutho"],
+}
+
 
 def _detect_intent(msg: str) -> str:
     lo = msg.lower()
@@ -326,8 +365,17 @@ def _detect_intent(msg: str) -> str:
     return best if scores[best] > 0 else "generic"
 
 
-def _ai_reply(message: str) -> str:
+def _detect_language(msg: str) -> str:
+    lo = msg.lower()
+    scores = {k: sum(1 for kw in v if kw in lo) for k, v in _LANG_KEYWORDS.items()}
+    return max(scores, key=scores.get) if any(scores.values()) else "en"
+
+
+def _ai_reply(message: str, language: str = None) -> str:
     """Call Groq or OpenRouter; fall back to template."""
+    detected_lang = _detect_language(message) if language is None else language
+    templates = _MULTI_LANG.get(detected_lang, _TEMPLATE_REPLIES)
+    
     if _GROQ_KEY:
         try:
             import requests as _req
@@ -343,8 +391,9 @@ def _ai_reply(message: str) -> str:
                         {
                             "role": "system",
                             "content": (
-                                "You are a WhatsApp auto-reply agent for a South African SMME. "
-                                "Be friendly, concise (1-2 short messages), use SA English (colour, favourite). "
+                                f"You are a WhatsApp auto-reply agent for a South African SMME. "
+                                f"Reply in {'Afrikaans' if detected_lang == 'af' else 'Zulu' if detected_lang == 'zu' else 'Xhosa' if detected_lang == 'xh' else 'South African English'}. "
+                                "Be friendly, concise (1-2 short messages). "
                                 "Use 0-1 emoji. Never make up prices, always ask for specifics. "
                                 "Currency is ZAR (R)."
                             ),
@@ -375,7 +424,7 @@ def _ai_reply(message: str) -> str:
                     "model": "deepseek/deepseek-r1:free",
                     "messages": [
                         {"role": "system",
-                         "content": "You are a WhatsApp auto-reply for a SA small business. Friendly, short, SA English."},
+                         "content": f"You are a WhatsApp auto-reply for a SA small business. Friendly, short. Reply in {'Afrikaans' if detected_lang == 'af' else 'Zulu' if detected_lang == 'zu' else 'Xhosa' if detected_lang == 'xh' else 'South African English'}."},
                         {"role": "user", "content": message},
                     ],
                     "max_tokens": 300,
@@ -387,7 +436,7 @@ def _ai_reply(message: str) -> str:
         except Exception:
             pass
 
-    return _TEMPLATE_REPLIES.get(_detect_intent(message), _TEMPLATE_REPLIES["generic"])
+    return templates.get(_detect_intent(message), templates.get("generic", _TEMPLATE_REPLIES["generic"]))
 
 
 # ─── Schemas ──────────────────────────────────────────────────
@@ -404,6 +453,53 @@ class SendMsg(BaseModel):
 class QuickReplyReq(BaseModel):
     reply_key: str
     to: str
+
+
+class TicketCreate(BaseModel):
+    issue_type: str
+    description: str
+    priority: str = "medium"
+    sla: str = "48h"
+    contact_email: str = ""
+    contact_phone: str = ""
+
+
+# ─── Ticket Classification & Routing ───────────────────────────────
+_TICKET_CATEGORIES = {
+    "technical": ["error", "bug", "crash", "not working", "broken", "fail", "500", "connection", "api"],
+    "billing": ["billing", "payment", "invoice", "charge", "upgrade", "downgrade", "refund", "price"],
+    "sales": ["demo", "trial", "pricing", "features", "plan", "enterprise", "partner", "reseller"],
+    "general": ["question", "help", "how to", "documentation", "setup", "config", "guide"]
+}
+
+_TICKET_ROUTING = {
+    "technical": "Point B",
+    "billing": "Point B",
+    "sales": "Point C",
+    "general": "Point A"
+}
+
+_SLA_HOURS = {
+    "24h": 24,
+    "48h": 48,
+    "72h": 72
+}
+
+
+def classify_ticket(description: str) -> str:
+    lo = description.lower()
+    scores = {k: sum(1 for kw in v if kw in lo) for k, v in _TICKET_CATEGORIES.items()}
+    return max(scores, key=scores.get) if any(scores.values()) else "general"
+
+
+def assign_support_point(category: str) -> str:
+    return _TICKET_ROUTING.get(category, "Point A")
+
+
+def calculate_due_date(sla: str) -> str:
+    hours = _SLA_HOURS.get(sla, 48)
+    due = datetime.utcnow() + timedelta(hours=hours)
+    return due.strftime("%Y-%m-%dT%H:%M:%S")
 
 
 class CampaignCreate(BaseModel):
@@ -615,6 +711,16 @@ _DASHBOARD_SUMMARY = lambda: {
     "campaign_subscribers": sum(v["active_subscribers"] for v in _STUB["campaigns"].values()),
 }
 
+
+@app.get("/api/pricing")
+def get_pricing():
+    """Return tiered pricing plans"""
+    plans = [
+        {"name": "Starter", "price": 0, "features": ["AI Auto‑Reply", "Lead Scoring", "Drip Campaigns"], "description": "Free forever, limited AI requests"},
+        {"name": "Pro", "price": 199, "currency": "ZAR", "features": ["Unlimited AI", "Custom Branding", "Multi‑language", "Priority Support"], "description": "For growing businesses"},
+        {"name": "Enterprise", "price": 999, "currency": "ZAR", "features": ["Dedicated Instance", "SLA", "White‑label", "On‑prem Deploy"], "description": "Full solution for large teams"},
+    ]
+    return {"plans": plans}
 
 @app.get("/api/dashboard/summary")
 def dashboard_summary():
@@ -939,6 +1045,49 @@ def openwa_webhook(request: Request):
     raw = request.headers.get("X-Webhook-Signature", "")
     logger.info("OpenWA webhook received | sig=%s", raw[:20])
     return {"status": "received"}
+
+
+# ─── SUPPORT TICKETS ─────────────────────────────────────────────
+@app.post("/api/tickets")
+def create_ticket(body: TicketCreate):
+    category = classify_ticket(body.description)
+    due_date = calculate_due_date(body.sla)
+    ticket = {
+        "id": f"TKT_{len(_STUB['tickets']) + 1:05d}",
+        "category": category,
+        "assigned_to": assign_support_point(category),
+        "issue_type": body.issue_type,
+        "description": body.description,
+        "priority": body.priority,
+        "sla": body.sla,
+        "due_date": due_date,
+        "status": "pending",
+        "created_at": _now_iso(),
+        "contact": {"email": body.contact_email, "phone": body.contact_phone},
+    }
+    _STUB["tickets"].append(ticket)
+    logger.info("Ticket created: %s | %s | %s", ticket["id"], category, body.issue_type)
+    return {"success": True, "ticket_id": ticket["id"], "assigned_to": ticket["assigned_to"]}
+
+
+@app.get("/api/tickets")
+def list_tickets(status: str = None, assigned_to: str = None):
+    data = _STUB["tickets"][:]
+    if status:
+        data = [t for t in data if t["status"] == status]
+    if assigned_to:
+        data = [t for t in data if t["assigned_to"] == assigned_to]
+    return {"tickets": data, "total": len(data)}
+
+
+@app.put("/api/tickets/{ticket_id}/status")
+def update_ticket_status(ticket_id: str, body: Dict):
+    for t in _STUB["tickets"]:
+        if t["id"] == ticket_id:
+            t["status"] = body.get("status", t["status"])
+            t["updated_at"] = _now_iso()
+            return {"success": True, "ticket": t}
+    raise HTTPException(404, "Ticket not found")
 
 
 # ─── Load landing page HTML at module level ──────────────────
@@ -1287,10 +1436,279 @@ _APP_PAGE_DASHBOARD = """<!DOCTYPE html><!--_3x95xLmWbLN0GMJUinot--><html lang="
 
 # ── /dashboard ──────────────────────────────────────────────────────────────────
 @app.get("/dashboard", include_in_schema=False)
-@app.get("/dashboard/", include_in_schema=False)
+@app.get("/dashboard
 def route_dashboard():
     from fastapi.responses import HTMLResponse
     return HTMLResponse(content=(_APP_PAGE_DASHBOARD))
+
+# ── /support ──────────────────────────────────────────────────────────
+_APP_PAGE_SUPPORT = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Support - WhatsApp CRM SA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; background: #06080A; color: #F8FAFC; }
+    .glass { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(12px); border-radius: 1rem; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="glass max-w-md w-full p-8">
+    <h1 class="text-2xl font-bold mb-2 text-green-500">Support Ticket</h1>
+    <p class="text-gray-400 mb-6">We respond within 24-48 hours</p>
+    
+    <form id="ticket-form" class="space-y-4">
+      <div>
+        <label class="block text-sm mb-1">Issue Type</label>
+        <select name="issue_type" required class="w-full p-2 bg-gray-900 rounded">
+          <option>Ticket Classification Error</option>
+          <option>Setup Issue</option>
+          <option>AI Not Responding</option>
+          <option>WhatsApp Connection</option>
+          <option>Billing/Pricing</option>
+          <option>Other</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm mb-1">Priority</label>
+        <select name="priority" class="w-full p-2 bg-gray-900 rounded">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm mb-1">SLA</label>
+        <select name="sla" class="w-full p-2 bg-gray-900 rounded">
+          <option value="72h">72h (Free)</option>
+          <option value="48h" selected>48h (Standard)</option>
+          <option value="24h">24h (Priority)</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm mb-1">Description</label>
+        <textarea name="description" required placeholder="What's the issue?" rows="4" class="w-full p-2 bg-gray-900 rounded resize-none"></textarea>
+      </div>
+      
+      <div>
+        <label class="block text-sm mb-1">Email (optional)</label>
+        <input type="email" name="contact_email" placeholder="john@example.co.za" class="w-full p-2 bg-gray-900 rounded"/>
+      </div>
+      
+      <button type="submit" class="w-full py-2 bg-gradient-to-r from-green-500 to-green-600 rounded font-semibold">Submit</button>
+    </form>
+    
+    <div id="confirmation" class="hidden mt-4 text-center">
+      <p class="text-green-500">Ticket Created!</p>
+      <p class="text-sm text-gray-400" id="ticket-id"></p>
+    </div>
+  </div>
+  
+  <script>
+    document.getElementById('ticket-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form));
+      
+      try {
+        const res = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if(result.success) {
+          form.classList.add('hidden');
+          document.getElementById('ticket-id').textContent = `Ticket ID: ${result.ticket_id}`;
+          document.getElementById('confirmation').classList.remove('hidden');
+        }
+      } catch(err) {
+        alert('Error creating ticket');
+      }
+    });
+  </script>
+</body>
+</html>"""
+
+@app.get("/support", include_in_schema=False)
+@app.get("/support/", include_in_schema=False)
+def route_support():
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(content=_APP_PAGE_SUPPORT)
+
+
+# ─── Admin Ticket Management ───────────────────────────────────────
+_APP_PAGE_TICKETS = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Tickets - WhatsApp CRM SA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; background: #06080A; color: #F8FAFC; }
+    .glass { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(12px); border-radius: 1rem; }
+    .status-pending { background: rgba(37,211,102,.15); color: #25D366; }
+    .status-resolved { background: rgba(59,130,246,.15); color: #3B82F6; }
+    .priority-high { border-left: 4px solid #ef4444; }
+    .priority-medium { border-left: 4px solid #f59e0b; }
+    .priority-low { border-left: 4px solid #10b981; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="glass max-w-6xl w-full p-8">
+    <h1 class="text-2xl font-bold mb-4 text-green-500">Admin Ticket Management</h1>
+    <div class="mb-6 flex justify-between items-center">
+      <div class="flex space-x-4">
+        <button id="refresh-btn" class="px-4 py-2 bg-gray-800 rounded hover:bg-gray-700">
+          Refresh
+        </button>
+        <select id="filter-status" class="px-3 py-2 bg-gray-900 rounded">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="resolved">Resolved</option>
+        </select>
+      </div>
+      <span id="stats-display" class="text-sm text-gray-400"></span>
+    </div>
+    
+    <div id="tickets-container" class="space-y-4">
+      <!-- Tickets will be loaded here -->
+    </div>
+  </div>
+  
+  <script>
+    async function loadTickets() {
+      const statusFilter = document.getElementById('filter-status').value;
+      const url = statusFilter ? `/api/tickets?status=${statusFilter}` : '/api/tickets';
+      
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        const container = document.getElementById('tickets-container');
+        container.innerHTML = '';
+        
+        // Update stats
+        document.getElementById('stats-display').textContent = 
+          `Total: ${data.total} | Pending: ${data.tickets.filter(t => t.status === 'pending').length} | Resolved: ${data.tickets.filter(t => t.status === 'resolved').length}`;
+        
+        if (data.tickets.length === 0) {
+          container.innerHTML = '<p class="text-center text-gray-500 py-8">No tickets found</p>';
+          return;
+        }
+        
+        data.tickets.forEach(ticket => {
+          const card = document.createElement('div');
+          card.className = `glass p-6 flex-1 min-w-[280px] ${ticket.priority === 'high' ? 'priority-high' : ticket.priority === 'medium' ? 'priority-medium' : 'priority-low'}`;
+          card.innerHTML = `
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-semibold text-lg">${ticket.ticket_id}</h3>
+              <span class="px-2 py-1 rounded text-xs ${ticket.status === 'pending' ? 'status-pending' : 'status-resolved'}">${ticket.status.toUpperCase()}</span>
+            </div>
+            <p class="text-gray-400 mb-2"><strong>Category:</strong> ${ticket.category.toUpperCase()}</p>
+            <p class="text-gray-400 mb-2"><strong>Priority:</strong> ${ticket.priority.toUpperCase()}</p>
+            <p class="text-gray-400 mb-2"><strong>Assigned to:</strong> ${ticket.assigned_to}</p>
+            <p class="text-gray-300 mb-4 line-clamp-3">${ticket.description}</p>
+            <div class="text-sm text-gray-500 border-t pt-3">
+              <span>Created: ${new Date(ticket.created_at).toLocaleString()}</span>
+              ${ticket.due_date ? `<br>Due: ${new Date(ticket.due_date).toLocaleString()}` : ''}
+            </div>
+            <button onclick="updateStatus('${ticket.ticket_id}', '${ticket.status === 'pending' ? 'resolved' : 'pending'}')" 
+                    class="mt-3 w-full py-2 px-4 bg-gradient-to-r from-green-500 to-green-600 rounded font-semibold hover:from-green-600 hover:to-green-700 transition-colors">
+              ${ticket.status === 'pending' ? 'Mark Resolved' : 'Mark Pending'}
+            </button>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error('Error loading tickets:', err);
+        document.getElementById('tickets-container').innerHTML = '<p class="text-center text-red-500 py-8">Error loading tickets</p>';
+      }
+    }
+    
+    async function updateStatus(ticketId, newStatus) {
+      try {
+        const res = await fetch(`/api/tickets/${ticketId}/status`, {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({status: newStatus})
+        });
+        if (res.ok) {
+          loadTickets(); // Refresh after update
+        } else {
+          alert('Failed to update ticket status');
+        }
+      } catch (err) {
+        alert('Error updating ticket');
+      }
+    }
+    
+    // Event listeners
+    document.getElementById('refresh-btn').addEventListener('click', loadTickets);
+    document.getElementById('filter-status').addEventListener('change', loadTickets);
+    
+    // Initial load
+    loadTickets();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadTickets, 30000);
+  </script>
+</body>
+</html>"""
+
+@app.get("/tickets", include_in_schema=False)
+@app.get("/tickets/", include_in_schema=False)
+def route_tickets():
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(content=_APP_PAGE_TICKETS)
+
+
+# ─── Ticket Statistics & SLA Monitoring ──────────────────────────────────
+@app.get("/api/tickets/stats")
+def ticket_stats():
+    tickets = _STUB["tickets"]
+    now = datetime.utcnow()
+    stats = {
+        "total": len(tickets),
+        "pending": sum(1 for t in tickets if t["status"] == "pending"),
+        "resolved": sum(1 for t in tickets if t["status"] == "resolved"),
+        "overdue": sum(1 for t in tickets if t["status"] == "pending" and datetime.fromisoformat(t["due_date"]) < now),
+        "by_category": {},
+        "sla_breach_rate": 0.0
+    }
+    for t in tickets:
+        cat = t["category"]
+        stats["by_category"][cat] = stats["by_category"].get(cat, 0) + 1
+    
+    if stats["total"] > 0:
+        overdue = stats["overdue"]
+        stats["sla_breach_rate"] = round((overdue / stats["total"]) * 100, 1)
+    
+    return stats
+
+
+@app.get("/api/tickets/sla-alerts")
+def sla_alerts():
+    now = datetime.utcnow()
+    alerts = []
+    for t in _STUB["tickets"]:
+        if t["status"] == "pending":
+            due = datetime.fromisoformat(t["due_date"])
+            if due < now:
+                alerts.append({
+                    "ticket_id": t["id"],
+                    "category": t["category"],
+                    "priority": t["priority"],
+                    "overdue_by_minutes": int((now - due).total_seconds() / 60),
+                    "assigned_to": t["assigned_to"]
+                })
+    return {"alerts": alerts, "count": len(alerts)}
 
 _APP_PAGE_CONTACTS = """<!DOCTYPE html><!--_3x95xLmWbLN0GMJUinot--><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/><meta name="viewport" content="width=device-width, initial-scale=1"/><style>@tailwind base;@tailwind components;@tailwind utilities;:root{--color-bg:#0B0B0F;--color-primary:#6366F1;--color-teal:#10B981;--color-amber:#F59E0B;--color-card:rgba(255,255,255,0.02);--color-border:rgba(255,255,255,0.06)}*{box-sizing:border-box}body,html{margin:0;padding:0;background:var(--color-bg);color:#E5E5E5;font-family:Inter,system-ui,-apple-system,sans-serif}#__next,body,html{min-height:100vh}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.18)}:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}@keyframes fadeIn{0%{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.animate-fade-in{animation:fadeIn .3s ease-out both}.notification{position:fixed;bottom:1.5rem;right:1.5rem;background:rgba(17,17,22,.95);border:1px solid var(--color-border);border-radius:.75rem;padding:.75rem 1.25rem;font-size:.875rem;color:#E5E5E5;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);z-index:9999;animation:fadeIn .25s ease-out}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}</style><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-74c939c87fa0092a.js"/><script src="/_next/static/chunks/4bd1b696-c023c6e3521b1417.js" async=""></script><script src="/_next/static/chunks/255-81ba70bd132d3eed.js" async=""></script><script src="/_next/static/chunks/main-app-3e6673f4a8380c97.js" async=""></script><script src="/_next/static/chunks/12-7d516a2f290e26f2.js" async=""></script><script src="/_next/static/chunks/app/layout-82602bdfed5552b0.js" async=""></script><script src="/_next/static/chunks/app/contacts/page-4371f6d2c8d556a9.js" async=""></script><meta name="theme-color" content="#25D366"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="WA CRM"/><link rel="manifest" href="/manifest.json"/><title>WhatsApp CRM SA — Admin</title><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body><div hidden=""><!--$--><!--/$--></div><div class="flex min-h-screen"><aside class="fixed left-0 top-0 h-full w-[260px] bg-black/40 backdrop-blur-xl border-r border-white/[.06] flex flex-col z-50"><div class="p-5 border-b border-white/[.06]"><a class="flex items-center gap-2 text-lg font-semibold text-white no-underline" href="/dashboard/"><span class="text-xl">💬</span><span>WhatsApp CRM</span></a><p class="text-xs text-white/30 mt-1">Admin Dashboard</p></div><nav class="flex-1 py-4 px-3 space-y-1"><a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[.06] transition-all no-underline" href="/dashboard/"><span class="text-base">🏠</span><span>Dashboard</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[.06] transition-all no-underline" href="/conversations/"><span class="text-base">💬</span><span>Conversations</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[.06] transition-all no-underline" href="/contacts/"><span class="text-base">👥</span><span>Contacts</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[.06] transition-all no-underline" href="/campaigns/"><span class="text-base">📨</span><span>Campaigns</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[.06] transition-all no-underline" href="/ai/"><span class="text-base">🤖</span><span>AI Stats</span></a></nav><div class="p-3 border-t border-white/[.06]"><button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/50 hover:text-white hover:bg-white/[.06] transition-all cursor-pointer bg-transparent border-none"><span class="text-base">🚪</span><span>Logout</span></button></div></aside><main class="ml-[260px] flex-1"><div class="flex items-center justify-center h-64 text-white/30">Loading…</div><!--$--><!--/$--></main></div><script src="/_next/static/chunks/webpack-74c939c87fa0092a.js" id="_R_" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:I[6710,[\"12\",\"static/chunks/12-7d516a2f290e26f2.js\",\"177\",\"static/chunks/app/layout-82602bdfed5552b0.js\"],\"default\"]\n3:I[9766,[],\"\"]\n4:I[8924,[],\"\"]\n5:I[3762,[\"12\",\"static/chunks/12-7d516a2f290e26f2.js\",\"177\",\"static/chunks/app/layout-82602bdfed5552b0.js\"],\"PWAInstallScript\"]\n6:I[1959,[],\"ClientPageRoot\"]\n7:I[4971,[\"102\",\"static/chunks/app/contacts/page-4371f6d2c8d556a9.js\"],\"default\"]\na:I[4431,[],\"OutletBoundary\"]\nc:I[5278,[],\"AsyncMetadataOutlet\"]\ne:I[4431,[],\"ViewportBoundary\"]\n10:I[4431,[],\"MetadataBoundary\"]\n11:\"$Sreact.suspense\"\n13:I[7150,[],\"\"]\n:HL[\"/_next/static/css/a5b9e56526ddf77e.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"b\":\"_3x95xLmWbLN0GMJUinot\",\"p\":\"\",\"c\":[\"\",\"contacts\",\"\"],\"i\":false,\"f\":[[[\"\",{\"children\":[\"contacts\",{\"children\":[\"__PAGE__\",{}]}]},\"$undefined\",\"$undefined\",true],[\"\",[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/a5b9e56526ddf77e.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"en\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"meta\",null,{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\"}],[\"$\",\"meta\",null,{\"name\":\"theme-color\",\"content\":\"#25D366\"}],[\"$\",\"meta\",null,{\"name\":\"apple-mobile-web-app-capable\",\"content\":\"yes\"}],[\"$\",\"meta\",null,{\"name\":\"apple-mobile-web-app-status-bar-style\",\"content\":\"black-translucent\"}],[\"$\",\"meta\",null,{\"name\":\"apple-mobile-web-app-title\",\"content\":\"WA CRM\"}],[\"$\",\"link\",null,{\"rel\":\"manifest\",\"href\":\"/manifest.json\"}]]}],[\"$\",\"body\",null,{\"children\":[[\"$\",\"$L2\",null,{\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}],[\"$\",\"$L5\",null,{}]]}]]}]]}],{\"children\":[\"contacts\",[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}],{\"children\":[\"__PAGE__\",[\"$\",\"$1\",\"c\",{\"children\":[[\"$\",\"$L6\",null,{\"Component\":\"$7\",\"searchParams\":{},\"params\":{},\"promises\":[\"$@8\",\"$@9\"]}],null,[\"$\",\"$La\",null,{\"children\":[\"$Lb\",[\"$\",\"$Lc\",null,{\"promise\":\"$@d\"}]]}]]}],{},null,false]},null,false]},null,false],[\"$\",\"$1\",\"h\",{\"children\":[null,[[\"$\",\"$Le\",null,{\"children\":\"$Lf\"}],null],[\"$\",\"$L10\",null,{\"children\":[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$11\",null,{\"fallback\":null,\"children\":\"$L12\"}]}]}]]}],false]],\"m\":\"$undefined\",\"G\":[\"$13\",[]],\"s\":false,\"S\":true}\n"])</script><script>self.__next_f.push([1,"8:{}\n9:\"$0:f:0:1:2:children:2:children:1:props:children:0:props:params\"\n"])</script><script>self.__next_f.push([1,"f:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\nb:null\n"])</script><script>self.__next_f.push([1,"d:{\"metadata\":[[\"$\",\"title\",\"0\",{\"children\":\"WhatsApp CRM SA — Admin\"}]],\"error\":null,\"digest\":\"$undefined\"}\n"])</script><script>self.__next_f.push([1,"12:\"$d:metadata\"\n"])</script></body></html>"""
 

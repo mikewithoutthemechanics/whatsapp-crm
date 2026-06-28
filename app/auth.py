@@ -17,7 +17,7 @@ try:
     from slowapi.util import get_remote_address
     limiter = Limiter(key_func=get_remote_address)
     HAS_RATE_LIMIT = True
-except ImportError:
+except (ImportError, Exception):
     limiter = None
     HAS_RATE_LIMIT = False
 
@@ -51,7 +51,6 @@ auth_router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
 @auth_router.post("/login")
-@limiter.limit("5/minute")
 def login(request: Request, body: dict):
     """
     Login with admin password.

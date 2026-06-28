@@ -88,15 +88,15 @@ class Settings:
     SUPABASE_SERVICE_KEY:    str = os.getenv("SUPABASE_SERVICE_KEY",   "")
 
     # ─ Rate limits ───────────────────────────────────────────────
-# PRODUCTION RATE LIMITS
-MAX_CONVERSATIONS_PER_DAY:    int = int(os.getenv("MAX_CONVERSATIONS_PER_DAY",    "200"))
-MAX_MESSAGES_PER_CONVERSATION: int = int(os.getenv("MAX_MESSAGES_PER_CONVERSATION", "50"))
-AI_RATE_LIMIT_PER_MINUTE:     int = int(os.getenv("AI_RATE_LIMIT_PER_MINUTE",     "18"))
-BUSINESS_HOURS_START:         int = int(os.getenv("BUSINESS_HOURS_START",        "8"))
-BUSINESS_HOURS_END:           int = int(os.getenv("BUSINESS_HOURS_END",          "18"))
-AUTO_REPLY_ENABLED:           bool = os.getenv("AUTO_REPLY_ENABLED",    "true").lower() == "true"
-MESSAGE_DELAY_MIN:          float = float(os.getenv("MESSAGE_DELAY_MIN","1"))
-AUTO_REPLY_TYPING_DELAY:      int = int(os.getenv("AUTO_REPLY_TYPING_DELAY","2"))
+    # PRODUCTION RATE LIMITS
+    MAX_CONVERSATIONS_PER_DAY:    int = int(os.getenv("MAX_CONVERSATIONS_PER_DAY",    "200"))
+    MAX_MESSAGES_PER_CONVERSATION: int = int(os.getenv("MAX_MESSAGES_PER_CONVERSATION", "50"))
+    AI_RATE_LIMIT_PER_MINUTE:     int = int(os.getenv("AI_RATE_LIMIT_PER_MINUTE",     "18"))
+    BUSINESS_HOURS_START:         int = int(os.getenv("BUSINESS_HOURS_START",        "8"))
+    BUSINESS_HOURS_END:           int = int(os.getenv("BUSINESS_HOURS_END",          "18"))
+    AUTO_REPLY_ENABLED:           bool = os.getenv("AUTO_REPLY_ENABLED",    "true").lower() == "true"
+    MESSAGE_DELAY_MIN:          float = float(os.getenv("MESSAGE_DELAY_MIN","1"))
+    AUTO_REPLY_TYPING_DELAY:      int = int(os.getenv("AUTO_REPLY_TYPING_DELAY","2"))
 
     # ─ Computed ──────────────────────────────────────────────────
     @property
@@ -114,28 +114,32 @@ AUTO_REPLY_TYPING_DELAY:      int = int(os.getenv("AUTO_REPLY_TYPING_DELAY","2")
         if not self.GROQ_API_KEY and not self.OPENROUTER_API_KEY:
             warnings.append("No AI API key set — AI auto-reply will use templates only")
 
-        if self.WHATSAPP_PROVIDER == "openwa":
-            for var, desc in [
-                ("OPENWA_API_KEY",     "OpenWA API key from dashboard → Settings → API Access"),
-                ("OPENWA_SESSION_ID",  "OpenWA session name (created in your dashboard)"),
-            ]:
-                if not getattr(self, var):
-                    errors.append(f"{var} is required when WHATSAPP_PROVIDER=openwa  ({desc})")
+        # Only validate WhatsApp provider in production or when explicitly configured
+        if self.ENVIRONMENT == "production" or self.WHATSAPP_PROVIDER != "openwa":
+            if self.WHATSAPP_PROVIDER == "openwa":
+                for var, desc in [
+                    ("OPENWA_API_KEY",     "OpenWA API key from dashboard → Settings → API Access"),
+                    ("OPENWA_SESSION_ID",  "OpenWA session name (created in your dashboard)"),
+                ]:
+                    if not getattr(self, var):
+                        errors.append(f"{var} is required when WHATSAPP_PROVIDER=openwa  ({desc})")
 
-        elif self.WHATSAPP_PROVIDER == "meta":
-            if not self.META_ACCESS_TOKEN:
-                errors.append("META_ACCESS_TOKEN required when WHATSAPP_PROVIDER=meta")
-            if not self.META_PHONE_NUMBER_ID:
-                errors.append("META_PHONE_NUMBER_ID required when WHATSAPP_PROVIDER=meta")
+            elif self.WHATSAPP_PROVIDER == "meta":
+                if not self.META_ACCESS_TOKEN:
+                    errors.append("META_ACCESS_TOKEN required when WHATSAPP_PROVIDER=meta")
+                if not self.META_PHONE_NUMBER_ID:
+                    errors.append("META_PHONE_NUMBER_ID required when WHATSAPP_PROVIDER=meta")
 
-        elif self.WHATSAPP_PROVIDER == "twilio":
-            if not self.TWILIO_ACCOUNT_SID:
-                errors.append("TWILIO_ACCOUNT_SID required when WHATSAPP_PROVIDER=twilio")
-            if not self.TWILIO_WHATSAPP_FROM:
-                errors.append("TWILIO_WHATSAPP_FROM required when WHATSAPP_PROVIDER=twilio")
+            elif self.WHATSAPP_PROVIDER == "twilio":
+                if not self.TWILIO_ACCOUNT_SID:
+                    errors.append("TWILIO_ACCOUNT_SID required when WHATSAPP_PROVIDER=twilio")
+                if not self.TWILIO_WHATSAPP_FROM:
+                    errors.append("TWILIO_WHATSAPP_FROM required when WHATSAPP_PROVIDER=twilio")
+        else:
+            warnings.append("WhatsApp provider not fully configured — using development mode")
 
         for w in warnings:
-            print(f"⚠️  {w}")
+            print(f"WARNING: {w}")
 
         if errors:
             raise ValueError("Config validation failed:\n  " + "\n  ".join(errors))

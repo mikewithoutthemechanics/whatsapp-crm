@@ -87,6 +87,7 @@ class Contact(Base):
     city = Column(String(100))
     id_number = Column(String(13))  # SA ID number (13 digits)
 
+    business = relationship("Business", back_populates="contacts")
     tags = relationship("ContactTag", back_populates="contact")
     conversations = relationship("Conversation", back_populates="contact")
     notes = relationship("ContactNote", back_populates="contact")
@@ -120,6 +121,9 @@ class Conversation(Base):
     ai_handled = Column(Boolean, default=False)
     human_took_over = Column(Boolean, default=False)
 
+    business = relationship("Business", back_populates="conversations")
+    contact = relationship("Contact", back_populates="conversations")
+    assigned_team_member = relationship("TeamMember", back_populates="conversations")
     messages = relationship("Message", back_populates="conversation")
     notes = relationship("ConversationNote", back_populates="conversation")
 
@@ -149,7 +153,7 @@ class Message(Base):
 
     is_read = Column(Boolean, default=False)
     ai_generated = Column(Boolean, default=False)
-    metadata = Column(JSON, default=dict)
+    extra_data = Column(JSON, default=dict)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -174,6 +178,7 @@ class TeamMember(Base):
     whatsapp_connected = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
 
+    business = relationship("Business", back_populates="team_members")
     conversations = relationship("Conversation", back_populates="assigned_team_member")
     notes = relationship("AgentNote", back_populates="author")
 
@@ -190,12 +195,17 @@ class Tag(Base):
     color = Column(String(7), default="#3B82F6")  # hex color
     usage_count = Column(Integer, default=0)
 
+    business = relationship("Business", back_populates="tags")
+
 
 class ContactTag(Base):
     """Many-to-many: Contact <-> Tag."""
     __tablename__ = "contact_tags"
     contact_id = Column(UUID(as_uuid=True), ForeignKey("contacts.id"), primary_key=True)
     tag_id = Column(UUID(as_uuid=True), ForeignKey("tags.id"), primary_key=True)
+
+    contact = relationship("Contact", back_populates="tags")
+    tag = relationship("Tag")
 
 
 class Campaign(Base):
@@ -212,13 +222,15 @@ class Campaign(Base):
 
     messages_sequence = Column(JSON, default=list)  # [{"delay_hours": 1, "template_id": "..."}, ...]
     target_audience = Column(String(20), default="all")  # all, new_leads, inactive, segment
-    target_tags = Column(ARRAY(UUID), default=list)
+    target_tags = Column(JSON, default=list)  # List of tag UUIDs (stored as JSON for SQLite compat)
 
     status = Column(String(20), default="draft")  # draft, active, paused, completed
     sent_count = Column(Integer, default=0)
     delivered_count = Column(Integer, default=0)
     replied_count = Column(Integer, default=0)
     active_subscribers = Column(Integer, default=0)
+
+    business = relationship("Business", back_populates="campaigns")
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -253,6 +265,8 @@ class MessageTemplate(Base):
     whatsapp_template_id = Column(String(100))
     variables = Column(JSON, default=list)  # ["{{1}}", "{{2}}", ...]
 
+    business = relationship("Business", back_populates="templates")
+
 
 class Order(Base):
     """Customer order / purchase tracking."""
@@ -268,8 +282,9 @@ class Order(Base):
     total_cents = Column(Integer, default=0)
     currency = Column(String(3), default="ZAR")
     notes = Column(Text)
-    metadata = Column(JSON, default=dict)
+    order_metadata = Column(JSON, default=dict)
 
+    customer = relationship("Contact", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -301,6 +316,9 @@ class ConversationNote(Base):
     is_internal = Column(Boolean, default=True)  # internal note vs customer-visible
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    conversation = relationship("Conversation", back_populates="notes")
+    author = relationship("TeamMember")
+
 
 class ContactNote(Base):
     __tablename__ = "contact_notes"
@@ -310,6 +328,8 @@ class ContactNote(Base):
     content = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    contact = relationship("Contact", back_populates="notes")
+
 
 class AgentNote(Base):
     __tablename__ = "agent_notes"
@@ -317,3 +337,5 @@ class AgentNote(Base):
     author_id = Column(UUID(as_uuid=True), ForeignKey("team_members.id"), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    author = relationship("TeamMember", back_populates="notes")
